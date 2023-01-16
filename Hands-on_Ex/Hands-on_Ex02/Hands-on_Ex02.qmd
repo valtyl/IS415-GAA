@@ -63,3 +63,51 @@ Data wrangling and transformation functions used:
 
 -   *pivot_wider()* of **tidyr** package
 -   *mutate(), filter(), group_by(), select()* of **dplyr** package
+
+```{r}
+popdata2020 <- popdata %>%
+  filter(Time == 2020) %>%
+  group_by(PA, SZ, AG) %>%
+  summarise(`POP` = sum(`Pop`)) %>%
+  ungroup()%>%
+  pivot_wider(names_from=AG, 
+              values_from=POP) %>%
+  mutate(YOUNG = rowSums(.[3:6])
+         +rowSums(.[12])) %>%
+mutate(`ECONOMY ACTIVE` = rowSums(.[7:11])+
+rowSums(.[13:15]))%>%
+mutate(`AGED`=rowSums(.[16:21])) %>%
+mutate(`TOTAL`=rowSums(.[3:21])) %>%  
+mutate(`DEPENDENCY` = (`YOUNG` + `AGED`)
+/`ECONOMY ACTIVE`) %>%
+  select(`PA`, `SZ`, `YOUNG`, 
+       `ECONOMY ACTIVE`, `AGED`, 
+       `TOTAL`, `DEPENDENCY`)
+```
+
+### 2.2.3.2 Joining the attribute data and geospatial data
+
+-   PA and SZ fields: upper and lower case
+-   SUBZONE_N and PLN_AREA_N: uppercase
+-   need to convert PA and SZ to uppercase
+
+```{r}
+popdata2020 <- popdata2020 %>%
+  mutate_at(.vars = vars(PA, SZ), 
+          .funs = funs(toupper)) %>%
+  filter(`ECONOMY ACTIVE` > 0)
+```
+
+-   use *left_join()* of **dplyr** to join geographical data and attribute table
+-   use planning subzone name as common identifier (SUBZONE_N and SZ)
+-   *left_join()* of **dplyr** is used with `mpsz` simple feature data as the left data table is to ensure that the output will be a simple feature data frame
+
+```{r}
+mpsz_pop2020 <- left_join(mpsz, popdata2020,
+                          by = c("SUBZONE_N" = "SZ"))
+```
+
+
+```{r}
+write_rds(mpsz_pop2020, "data/rds/mpszpop2020.rds")
+```

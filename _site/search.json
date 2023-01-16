@@ -123,14 +123,7 @@
     "href": "Hands-on_Ex/Hands-on_Ex02/Hands-on_Ex02.html#data-preparation",
     "title": "Hands-on Exercise 2: Choropleth Mapping with R",
     "section": "2.2.3 Data Preparation",
-    "text": "2.2.3 Data Preparation\nWe need to prepare a data table with year 2020 values before we can prepare a thematic map.\nData Table to include the following variables: PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.\n\nYOUNG: age group 0 to 4 until age group 20 to 24,\nECONOMY ACTIVE: age group 25-29 until age group 60-64,\nAGED: age group 65 and above,\nTOTAL: all age group, and\nDEPENDENCY: the ratio between young and aged against economy active group\n\n\n2.2.3.1 Data wrangling\nData wrangling and transformation functions used:\n\npivot_wider() of tidyr package\nmutate(), filter(), group_by(), select() of dplyr package"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "IS415-GAA",
-    "section": "",
-    "text": "Welcome to IS415 Geospatial Analytics and Applications.\nThis is the course website of IS415 that I am studying this term. You will find my course work on this website."
+    "text": "2.2.3 Data Preparation\nWe need to prepare a data table with year 2020 values before we can prepare a thematic map.\nData Table to include the following variables: PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.\n\nYOUNG: age group 0 to 4 until age group 20 to 24,\nECONOMY ACTIVE: age group 25-29 until age group 60-64,\nAGED: age group 65 and above,\nTOTAL: all age group, and\nDEPENDENCY: the ratio between young and aged against economy active group\n\n\n2.2.3.1 Data wrangling\nData wrangling and transformation functions used:\n\npivot_wider() of tidyr package\nmutate(), filter(), group_by(), select() of dplyr package\n\n\npopdata2020 <- popdata %>%\n  filter(Time == 2020) %>%\n  group_by(PA, SZ, AG) %>%\n  summarise(`POP` = sum(`Pop`)) %>%\n  ungroup()%>%\n  pivot_wider(names_from=AG, \n              values_from=POP) %>%\n  mutate(YOUNG = rowSums(.[3:6])\n         +rowSums(.[12])) %>%\nmutate(`ECONOMY ACTIVE` = rowSums(.[7:11])+\nrowSums(.[13:15]))%>%\nmutate(`AGED`=rowSums(.[16:21])) %>%\nmutate(`TOTAL`=rowSums(.[3:21])) %>%  \nmutate(`DEPENDENCY` = (`YOUNG` + `AGED`)\n/`ECONOMY ACTIVE`) %>%\n  select(`PA`, `SZ`, `YOUNG`, \n       `ECONOMY ACTIVE`, `AGED`, \n       `TOTAL`, `DEPENDENCY`)\n\n\n\n2.2.3.2 Joining the attribute data and geospatial data\n\nPA and SZ fields: upper and lower case\nSUBZONE_N and PLN_AREA_N: uppercase\nneed to convert PA and SZ to uppercase\n\n\npopdata2020 <- popdata2020 %>%\n  mutate_at(.vars = vars(PA, SZ), \n          .funs = funs(toupper)) %>%\n  filter(`ECONOMY ACTIVE` > 0)\n\n\nuse left_join() of dplyr to join geographical data and attribute table\nuse planning subzone name as common identifier (SUBZONE_N and SZ)\nleft_join() of dplyr is used with mpsz simple feature data as the left data table is to ensure that the output will be a simple feature data frame\n\n\nmpsz_pop2020 <- left_join(mpsz, popdata2020,\n                          by = c(\"SUBZONE_N\" = \"SZ\"))\n\n\nwrite_rds(mpsz_pop2020, \"data/rds/mpszpop2020.rds\")"
   },
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
@@ -144,13 +137,20 @@
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-geospatial-data",
     "title": "In-class Exercise 2: Geospatial Data Wrangling",
     "section": "2.2.1 Importing Geospatial Data",
-    "text": "2.2.1 Importing Geospatial Data\nNigeria data from Humanitarian Data Exchange (NGA Data Set):\n\nnigeria <- st_read(dsn = \"data/geospatial\", layer = \"nga_polbndl_adm2_1m_salb\")\n\nReading layer `nga_polbndl_adm2_1m_salb' from data source \n  `C:\\valtyl\\IS415-GAA\\In-class_Ex\\In-class_Ex02\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 1685 features and 1 field\nGeometry type: LINESTRING\nDimension:     XY\nBounding box:  xmin: 2.744192 ymin: 4.363015 xmax: 14.57926 ymax: 13.90103\nGeodetic CRS:  WGS 84\n\n\ngeoBoundaries Data Set:\n\ngeoNGA <- st_read(dsn = \"data/geospatial/geoBoundaries\", layer = \"geoBoundaries-NGA-ADM2\") %>% st_transform(crs = 26392)\n\nReading layer `geoBoundaries-NGA-ADM2' from data source \n  `C:\\valtyl\\IS415-GAA\\In-class_Ex\\In-class_Ex02\\data\\geospatial\\geoBoundaries' \n  using driver `ESRI Shapefile'\nSimple feature collection with 774 features and 5 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2.668534 ymin: 4.273007 xmax: 14.67882 ymax: 13.89442\nGeodetic CRS:  WGS 84\n\n\nThe message shows:\n\npolygon feature shapefile with 774 features and 5 fields\n%>% is a function called piping from tidyverse to emphasise a sequence of actions rather than the object that the actions are being performed on\nwithout the transformation, the geometric data will have very small numbers (in decimal degree)\nEPSG: 26391, 26392 and 26303 are projected coordinate systems for different parts of Nigeria\nsince it is in WGS84, we should do the transformation!"
+    "text": "2.2.1 Importing Geospatial Data\nNigeria data from Humanitarian Data Exchange (The NGA Data Set):\n\nNGA <- st_read(dsn = \"data/geospatial\", layer = \"nga_polbndl_adm2_1m_salb\") %>% st_transform(crs=26392)\n\nReading layer `nga_polbndl_adm2_1m_salb' from data source \n  `C:\\valtyl\\IS415-GAA\\In-class_Ex\\In-class_Ex02\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 1685 features and 1 field\nGeometry type: LINESTRING\nDimension:     XY\nBounding box:  xmin: 2.744192 ymin: 4.363015 xmax: 14.57926 ymax: 13.90103\nGeodetic CRS:  WGS 84\n\n\nThe geoBoundaries Data Set:\n\ngeoNGA <- st_read(dsn = \"data/geospatial/geoBoundaries\", layer = \"geoBoundaries-NGA-ADM2\") %>% st_transform(crs = 26392)\n\nReading layer `geoBoundaries-NGA-ADM2' from data source \n  `C:\\valtyl\\IS415-GAA\\In-class_Ex\\In-class_Ex02\\data\\geospatial\\geoBoundaries' \n  using driver `ESRI Shapefile'\nSimple feature collection with 774 features and 5 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2.668534 ymin: 4.273007 xmax: 14.67882 ymax: 13.89442\nGeodetic CRS:  WGS 84\n\n\nThe message shows:\n\npolygon feature shapefile with 774 features and 5 fields\n%>% is a function called piping from tidyverse to emphasise a sequence of actions rather than the object that the actions are being performed on\nwithout the transformation, the geometric data will have very small numbers (in decimal degree)\nEPSG: 26391, 26392 and 26303 are projected coordinate systems for different parts of Nigeria\nsince it is in WGS84, we should do the transformation!"
   },
   {
     "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-aspatial-data",
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-aspatial-data",
     "title": "In-class Exercise 2: Geospatial Data Wrangling",
     "section": "2.2.2 Importing Aspatial Data",
-    "text": "2.2.2 Importing Aspatial Data\n\nwpdx <- read_csv(\"data/aspatial/WPdx.csv\") %>% filter(`#clean_country_name` == \"Nigeria\")"
+    "text": "2.2.2 Importing Aspatial Data\n\nwp_nga <- read_csv(\"data/aspatial/WPdx.csv\") %>% filter(`#clean_country_name` == \"Nigeria\")"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "IS415-GAA",
+    "section": "",
+    "text": "Welcome to IS415 Geospatial Analytics and Applications.\nThis is the course website of IS415 that I am studying this term. You will find my course work on this website."
   }
 ]

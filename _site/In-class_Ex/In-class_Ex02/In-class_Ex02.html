@@ -210,6 +210,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   </ul></li>
   <li><a href="#converting-aspatial-data-into-geospatial-data" id="toc-converting-aspatial-data-into-geospatial-data" class="nav-link" data-scroll-target="#converting-aspatial-data-into-geospatial-data">2.3 Converting Aspatial Data into Geospatial Data</a></li>
   <li><a href="#projection-transformation" id="toc-projection-transformation" class="nav-link" data-scroll-target="#projection-transformation">2.4 Projection Transformation</a></li>
+  <li><a href="#derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level" id="toc-derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level" class="nav-link" data-scroll-target="#derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level">2.5 Derive the Proportion of functional and non-functional water point at LGA level</a></li>
+  <li><a href="#combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame" id="toc-combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame" class="nav-link" data-scroll-target="#combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame">2.6 Combine the Geospatial and Aspatial Data Frame into Simple Feature Data Frame</a></li>
+  <li><a href="#visualise-the-distribution-of-water-point" id="toc-visualise-the-distribution-of-water-point" class="nav-link" data-scroll-target="#visualise-the-distribution-of-water-point">2.7 Visualise the Distribution of Water Point</a></li>
   </ul>
 </nav>
     </div>
@@ -256,9 +259,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1>2.2 Importing the Data</h1>
 <section id="importing-geospatial-data" class="level2">
 <h2 class="anchored" data-anchor-id="importing-geospatial-data">2.2.1 Importing Geospatial Data</h2>
-<p>Nigeria data from Humanitarian Data Exchange (NGA Data Set):</p>
+<p>Nigeria data from Humanitarian Data Exchange (The NGA Data Set):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>nigeria <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, <span class="at">layer =</span> <span class="st">"nga_polbndl_adm2_1m_salb"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>NGA <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, <span class="at">layer =</span> <span class="st">"nga_polbndl_adm2_1m_salb"</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs=</span><span class="dv">26392</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `nga_polbndl_adm2_1m_salb' from data source 
   `C:\valtyl\IS415-GAA\In-class_Ex\In-class_Ex02\data\geospatial' 
@@ -270,7 +273,7 @@ Bounding box:  xmin: 2.744192 ymin: 4.363015 xmax: 14.57926 ymax: 13.90103
 Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
-<p>geoBoundaries Data Set:</p>
+<p>The geoBoundaries Data Set:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>geoNGA <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial/geoBoundaries"</span>, <span class="at">layer =</span> <span class="st">"geoBoundaries-NGA-ADM2"</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">26392</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -289,22 +292,22 @@ Geodetic CRS:  WGS 84</code></pre>
 <li>polygon feature shapefile with 774 features and 5 fields</li>
 <li>%&gt;% is a function called piping from tidyverse to emphasise a sequence of actions rather than the object that the actions are being performed on</li>
 <li>without the transformation, the geometric data will have very small numbers (in decimal degree)</li>
-<li>EPSG: <a href="https://epsg.io/26391">26391</a>, 26392 and 26303 are projected coordinate systems for different parts of Nigeria</li>
+<li>EPSG: <a href="https://epsg.io/26391">26391</a>, <a href="https://epsg.io/26392">26392</a> and <a href="https://epsg.io/26303">26303</a> are projected coordinate systems for different parts of Nigeria</li>
 <li>since it is in WGS84, we should do the transformation!</li>
 </ul>
 </section>
 <section id="importing-aspatial-data" class="level2">
 <h2 class="anchored" data-anchor-id="importing-aspatial-data">2.2.2 Importing Aspatial Data</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>wpdx <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/WPdx.csv"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="st">`</span><span class="at">#clean_country_name</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Nigeria"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>wp_nga <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/WPdx.csv"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="st">`</span><span class="at">#clean_country_name</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Nigeria"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
 <section id="converting-aspatial-data-into-geospatial-data" class="level1">
 <h1>2.3 Converting Aspatial Data into Geospatial Data</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wpdx<span class="sc">$</span>Geometry <span class="ot">=</span> <span class="fu">st_as_sfc</span>(wpdx<span class="sc">$</span><span class="st">`</span><span class="at">New Georeferenced Column</span><span class="st">`</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>wpdx</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wp_nga<span class="sc">$</span>Geometry <span class="ot">=</span> <span class="fu">st_as_sfc</span>(wp_nga<span class="sc">$</span><span class="st">`</span><span class="at">New Georeferenced Column</span><span class="st">`</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>wp_nga</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 95,008 × 71
    row_id `#source`      #lat_…¹ #lon_…² #repo…³ #stat…⁴ #wate…⁵ #wate…⁶ #wate…⁷
@@ -328,9 +331,10 @@ Geodetic CRS:  WGS 84</code></pre>
 #   `#fecal_coliform_value` &lt;dbl&gt;, `#subjective_quality` &lt;chr&gt;, …</code></pre>
 </div>
 </div>
+<p>Converting into a point sf data frame:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wpdx_sf <span class="ot">&lt;-</span> <span class="fu">st_sf</span>(wpdx, <span class="at">crs=</span><span class="dv">4326</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>wpdx_sf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wp_sf <span class="ot">&lt;-</span> <span class="fu">st_sf</span>(wp_nga, <span class="at">crs=</span><span class="dv">4326</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>wp_sf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Simple feature collection with 95008 features and 70 fields
 Geometry type: POINT
@@ -362,9 +366,11 @@ Geodetic CRS:  WGS 84
 </section>
 <section id="projection-transformation" class="level1">
 <h1>2.4 Projection Transformation</h1>
+<p>Transforming the projection from wgs84 to the appropriate projected coordinate system of Nigeria (26392):</p>
+<p>aspatial data &gt;&gt; geospatial data &gt;&gt; Nigeria’s PCS</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wpdx_sf <span class="ot">&lt;-</span> wpdx_sf <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs=</span><span class="dv">26392</span>)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>wpdx_sf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wp_sf <span class="ot">&lt;-</span> wp_sf <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs=</span><span class="dv">26392</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>wp_sf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Simple feature collection with 95008 features and 70 fields
 Geometry type: POINT
@@ -391,6 +397,29 @@ Projected CRS: Minna / Nigeria Mid Belt
 #   `#rehabilitator` &lt;lgl&gt;, `#management_clean` &lt;chr&gt;, `#status_clean` &lt;chr&gt;,
 #   `#pay` &lt;chr&gt;, `#fecal_coliform_presence` &lt;chr&gt;,
 #   `#fecal_coliform_value` &lt;dbl&gt;, `#subjective_quality` &lt;chr&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level" class="level1">
+<h1>2.5 Derive the Proportion of functional and non-functional water point at LGA level</h1>
+<p>Proportion of functional water point:</p>
+<div class="cell">
+
+</div>
+<p>Proportion of non-functional water point:</p>
+<div class="cell">
+
+</div>
+</section>
+<section id="combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame" class="level1">
+<h1>2.6 Combine the Geospatial and Aspatial Data Frame into Simple Feature Data Frame</h1>
+</section>
+<section id="visualise-the-distribution-of-water-point" class="level1">
+<h1>2.7 Visualise the Distribution of Water Point</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wp_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 

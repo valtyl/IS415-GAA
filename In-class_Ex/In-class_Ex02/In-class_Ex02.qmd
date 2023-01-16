@@ -24,13 +24,13 @@ pacman::p_load(tidyverse, sf, funModeling)
 
 ## 2.2.1 Importing Geospatial Data
 
-Nigeria data from Humanitarian Data Exchange (NGA Data Set):
+Nigeria data from Humanitarian Data Exchange (The NGA Data Set):
 
 ```{r}
-nigeria <- st_read(dsn = "data/geospatial", layer = "nga_polbndl_adm2_1m_salb")
+NGA <- st_read(dsn = "data/geospatial", layer = "nga_polbndl_adm2_1m_salb") %>% st_transform(crs=26392)
 ```
 
-geoBoundaries Data Set:
+The geoBoundaries Data Set:
 
 ```{r}
 geoNGA <- st_read(dsn = "data/geospatial/geoBoundaries", layer = "geoBoundaries-NGA-ADM2") %>% st_transform(crs = 26392)
@@ -41,30 +41,58 @@ The message shows:
 -   polygon feature shapefile with 774 features and 5 fields
 -   %\>% is a function called piping from tidyverse to emphasise a sequence of actions rather than the object that the actions are being performed on
 -   without the transformation, the geometric data will have very small numbers (in decimal degree)
--   EPSG: [26391](https://epsg.io/26391), 26392 and 26303 are projected coordinate systems for different parts of Nigeria
+-   EPSG: [26391](https://epsg.io/26391), [26392](https://epsg.io/26392) and [26303](https://epsg.io/26303) are projected coordinate systems for different parts of Nigeria
 -   since it is in WGS84, we should do the transformation!
 
 ## 2.2.2 Importing Aspatial Data
 
 ```{r}
-wpdx <- read_csv("data/aspatial/WPdx.csv") %>% filter(`#clean_country_name` == "Nigeria")
+wp_nga <- read_csv("data/aspatial/WPdx.csv") %>% filter(`#clean_country_name` == "Nigeria")
 ```
 
 # 2.3 Converting Aspatial Data into Geospatial Data
 
 ```{r}
-wpdx$Geometry = st_as_sfc(wpdx$`New Georeferenced Column`)
-wpdx
+wp_nga$Geometry = st_as_sfc(wp_nga$`New Georeferenced Column`)
+wp_nga
 ```
 
+Converting into a point sf data frame:
+
 ```{r}
-wpdx_sf <- st_sf(wpdx, crs=4326)
-wpdx_sf
+wp_sf <- st_sf(wp_nga, crs=4326)
+wp_sf
 ```
 
 # 2.4 Projection Transformation
 
+Transforming the projection from wgs84 to the appropriate projected coordinate system of Nigeria (26392):
+
+aspatial data \>\> geospatial data \>\> Nigeria's PCS
+
 ```{r}
-wpdx_sf <- wpdx_sf %>% st_transform(crs=26392)
-wpdx_sf
+wp_sf <- wp_sf %>% st_transform(crs=26392)
+wp_sf
 ```
+
+# 2.5 Derive the Proportion of functional and non-functional water point at LGA level
+
+Proportion of functional water point:
+```{r}
+
+```
+
+Proportion of non-functional water point:
+```{r}
+
+```
+
+
+
+# 2.6 Combine the Geospatial and Aspatial Data Frame into Simple Feature Data Frame
+
+# 2.7 Visualise the Distribution of Water Point
+```{r}
+plot(wp_sf)
+```
+

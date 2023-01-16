@@ -210,6 +210,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#data-preparation" id="toc-data-preparation" class="nav-link" data-scroll-target="#data-preparation">2.2.3 Data Preparation</a>
   <ul class="collapse">
   <li><a href="#data-wrangling" id="toc-data-wrangling" class="nav-link" data-scroll-target="#data-wrangling">2.2.3.1 Data wrangling</a></li>
+  <li><a href="#joining-the-attribute-data-and-geospatial-data" id="toc-joining-the-attribute-data-and-geospatial-data" class="nav-link" data-scroll-target="#joining-the-attribute-data-and-geospatial-data">2.2.3.2 Joining the attribute data and geospatial data</a></li>
   </ul></li>
   </ul></li>
   </ul>
@@ -349,6 +350,52 @@ First 10 features:
 <li><em>pivot_wider()</em> of <strong>tidyr</strong> package</li>
 <li><em>mutate(), filter(), group_by(), select()</em> of <strong>dplyr</strong> package</li>
 </ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>popdata2020 <span class="ot">&lt;-</span> popdata <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Time <span class="sc">==</span> <span class="dv">2020</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(PA, SZ, AG) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="st">`</span><span class="at">POP</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">sum</span>(<span class="st">`</span><span class="at">Pop</span><span class="st">`</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()<span class="sc">%&gt;%</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from=</span>AG, </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from=</span>POP) <span class="sc">%&gt;%</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">YOUNG =</span> <span class="fu">rowSums</span>(.[<span class="dv">3</span><span class="sc">:</span><span class="dv">6</span>])</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>         <span class="sc">+</span><span class="fu">rowSums</span>(.[<span class="dv">12</span>])) <span class="sc">%&gt;%</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="st">`</span><span class="at">ECONOMY ACTIVE</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">rowSums</span>(.[<span class="dv">7</span><span class="sc">:</span><span class="dv">11</span>])<span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rowSums</span>(.[<span class="dv">13</span><span class="sc">:</span><span class="dv">15</span>]))<span class="sc">%&gt;%</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="st">`</span><span class="at">AGED</span><span class="st">`</span><span class="ot">=</span><span class="fu">rowSums</span>(.[<span class="dv">16</span><span class="sc">:</span><span class="dv">21</span>])) <span class="sc">%&gt;%</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="st">`</span><span class="at">TOTAL</span><span class="st">`</span><span class="ot">=</span><span class="fu">rowSums</span>(.[<span class="dv">3</span><span class="sc">:</span><span class="dv">21</span>])) <span class="sc">%&gt;%</span>  </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="st">`</span><span class="at">DEPENDENCY</span><span class="st">`</span> <span class="ot">=</span> (<span class="st">`</span><span class="at">YOUNG</span><span class="st">`</span> <span class="sc">+</span> <span class="st">`</span><span class="at">AGED</span><span class="st">`</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="sc">/</span><span class="st">`</span><span class="at">ECONOMY ACTIVE</span><span class="st">`</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">`</span><span class="at">PA</span><span class="st">`</span>, <span class="st">`</span><span class="at">SZ</span><span class="st">`</span>, <span class="st">`</span><span class="at">YOUNG</span><span class="st">`</span>, </span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>       <span class="st">`</span><span class="at">ECONOMY ACTIVE</span><span class="st">`</span>, <span class="st">`</span><span class="at">AGED</span><span class="st">`</span>, </span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>       <span class="st">`</span><span class="at">TOTAL</span><span class="st">`</span>, <span class="st">`</span><span class="at">DEPENDENCY</span><span class="st">`</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="joining-the-attribute-data-and-geospatial-data" class="level3">
+<h3 class="anchored" data-anchor-id="joining-the-attribute-data-and-geospatial-data">2.2.3.2 Joining the attribute data and geospatial data</h3>
+<ul>
+<li>PA and SZ fields: upper and lower case</li>
+<li>SUBZONE_N and PLN_AREA_N: uppercase</li>
+<li>need to convert PA and SZ to uppercase</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>popdata2020 <span class="ot">&lt;-</span> popdata2020 <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_at</span>(<span class="at">.vars =</span> <span class="fu">vars</span>(PA, SZ), </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>          <span class="at">.funs =</span> <span class="fu">funs</span>(toupper)) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">ECONOMY ACTIVE</span><span class="st">`</span> <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>use <em>left_join()</em> of <strong>dplyr</strong> to join geographical data and attribute table</li>
+<li>use planning subzone name as common identifier (SUBZONE_N and SZ)</li>
+<li><em>left_join()</em> of <strong>dplyr</strong> is used with <code>mpsz</code> simple feature data as the left data table is to ensure that the output will be a simple feature data frame</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>mpsz_pop2020 <span class="ot">&lt;-</span> <span class="fu">left_join</span>(mpsz, popdata2020,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                          <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"SUBZONE_N"</span> <span class="ot">=</span> <span class="st">"SZ"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_rds</span>(mpsz_pop2020, <span class="st">"data/rds/mpszpop2020.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
 </section>
