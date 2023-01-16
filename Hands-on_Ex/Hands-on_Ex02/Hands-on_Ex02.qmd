@@ -1,0 +1,65 @@
+---
+title: "Hands-on Exercise 2: Choropleth Mapping with R"
+execute: 
+  warning: false
+date: "`r Sys.Date()`"
+---
+
+# 2.1 Getting Started
+
+Packages needed:
+
+-   tmap
+-   readr for importing delimited text file
+-   tidyr for tidying data
+-   dplyr for wrangling data
+-   sf for handling geospatial data
+
+## 2.1.1 Installing and loading R packages
+
+Installing and loading the packages:
+
+```{r}
+pacman::p_load(tmap, tidyverse, sf)
+```
+
+-   readr, tidyr, dplyr are part of tidyverse
+
+# 2.2 Importing Data
+
+## 2.2.1 Importing Geospatial Data
+
+```{r}
+mpsz <- st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
+```
+
+Content of mpsz:
+
+```{r}
+mpsz
+```
+
+## 2.2.2 Importing Attribute Data
+
+```{r}
+popdata <- read_csv("data/aspatial/respopagesextod2011to2020.csv")
+```
+
+## 2.2.3 Data Preparation
+
+We need to prepare a data table with year 2020 values before we can prepare a thematic map.
+
+Data Table to include the following variables: PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.
+
+-   YOUNG: age group 0 to 4 until age group 20 to 24,
+-   ECONOMY ACTIVE: age group 25-29 until age group 60-64,
+-   AGED: age group 65 and above,
+-   TOTAL: all age group, and
+-   DEPENDENCY: the ratio between young and aged against economy active group
+
+### 2.2.3.1 Data wrangling
+
+Data wrangling and transformation functions used:
+
+-   *pivot_wider()* of **tidyr** package
+-   *mutate(), filter(), group_by(), select()* of **dplyr** package

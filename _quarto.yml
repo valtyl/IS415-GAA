@@ -17,8 +17,9 @@ website:
 format:
   html:
     theme: 
-      light: cosmo
-      dark: darkly
+      light: [cosmo, theme.scss]
+      dark: [cosmo, theme-dark.scss]
+    linkcolor: "#27EBEE"
     css: styles.css
     toc: true
 
