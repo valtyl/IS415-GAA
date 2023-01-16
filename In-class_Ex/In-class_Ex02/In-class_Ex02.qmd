@@ -47,5 +47,24 @@ The message shows:
 ## 2.2.2 Importing Aspatial Data
 
 ```{r}
-wpdx <- read_csv("data/aspatial/WPdx.csv")
+wpdx <- read_csv("data/aspatial/WPdx.csv") %>% filter(`#clean_country_name` == "Nigeria")
+```
+
+# 2.3 Converting Aspatial Data into Geospatial Data
+
+```{r}
+wpdx$Geometry = st_as_sfc(wpdx$`New Georeferenced Column`)
+wpdx
+```
+
+```{r}
+wpdx_sf <- st_sf(wpdx, crs=4326)
+wpdx_sf
+```
+
+# 2.4 Projection Transformation
+
+```{r}
+wpdx_sf <- wpdx_sf %>% st_transform(crs=26392)
+wpdx_sf
 ```

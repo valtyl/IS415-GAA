@@ -151,6 +151,6 @@
     "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html#importing-aspatial-data",
     "title": "In-class Exercise 2: Geospatial Data Wrangling",
     "section": "2.2.2 Importing Aspatial Data",
-    "text": "2.2.2 Importing Aspatial Data\n\nwpdx <- read_csv(\"data/aspatial/WPdx.csv\")"
+    "text": "2.2.2 Importing Aspatial Data\n\nwpdx <- read_csv(\"data/aspatial/WPdx.csv\") %>% filter(`#clean_country_name` == \"Nigeria\")"
   }
 ]
