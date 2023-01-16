@@ -4,14 +4,7 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "About this site\n\n1 + 1\n\n[1] 2"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "IS415-GAA",
-    "section": "",
-    "text": "Welcome to IS415 Geospatial Analytics and Applications.\nThis is the course website of IS415 that I am studying this term. You will find my course work on this website."
+    "text": "About this site"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html",
@@ -19,13 +12,6 @@
     "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
     "section": "",
     "text": "In this section, I will install and load tidyverse and sf packages.\n\npacman::p_load(tidyverse, sf)"
-  },
-  {
-    "objectID": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html#plotting-the-geospatial-data",
-    "href": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html#plotting-the-geospatial-data",
-    "title": "Hands-on Exercise 1: Geospatial Data Wrangling with R",
-    "section": "Plotting the Geospatial Data",
-    "text": "Plotting the Geospatial Data"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.html#importing-a-polygon-feature-data-in-shapefile-format",
@@ -138,5 +124,12 @@
     "title": "Hands-on Exercise 2: Choropleth Mapping with R",
     "section": "2.2.3 Data Preparation",
     "text": "2.2.3 Data Preparation\nWe need to prepare a data table with year 2020 values before we can prepare a thematic map.\nData Table to include the following variables: PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY.\n\nYOUNG: age group 0 to 4 until age group 20 to 24,\nECONOMY ACTIVE: age group 25-29 until age group 60-64,\nAGED: age group 65 and above,\nTOTAL: all age group, and\nDEPENDENCY: the ratio between young and aged against economy active group\n\n\n2.2.3.1 Data wrangling\nData wrangling and transformation functions used:\n\npivot_wider() of tidyr package\nmutate(), filter(), group_by(), select() of dplyr package"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "IS415-GAA",
+    "section": "",
+    "text": "Welcome to IS415 Geospatial Analytics and Applications.\nThis is the course website of IS415 that I am studying this term. You will find my course work on this website."
   }
 ]

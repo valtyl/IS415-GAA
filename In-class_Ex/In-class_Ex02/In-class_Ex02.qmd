@@ -1,0 +1,7 @@
+---
+title: "In-class Exercise 2: Geospatial Data Wrangling"
+execute: 
+  warning: false
+date: "`r Sys.Date()`"
+---
+
