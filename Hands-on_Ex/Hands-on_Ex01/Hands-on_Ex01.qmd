@@ -120,7 +120,10 @@ To plot the sf object using a specific attribute:
 plot(mpsz["PLN_AREA_N"])
 ```
 
-Note: - for high cartographic quality plot, use tmap
+:::{.callout-note}
+## Note
+Note: for high cartographic quality plot, use tmap
+:::
 
 # 1.5 Working with Projection
 
