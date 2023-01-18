@@ -107,7 +107,485 @@ mpsz_pop2020 <- left_join(mpsz, popdata2020,
                           by = c("SUBZONE_N" = "SZ"))
 ```
 
-
 ```{r}
 write_rds(mpsz_pop2020, "data/rds/mpszpop2020.rds")
+```
+
+# 2.3 Choropleth Mapping Geospatial Data Using *tmap*
+
+## 2.3.1 Plotting a choropleth map quickly using *qtm()*
+
+qtm() is:
+
+-   concise
+-   provides good default visualisation
+-   easiest and quickest way to draw a choropleth map
+
+disadvantage of qtm(): makes aesthetics of individual layers harder to control
+
+Drawing a cartographic standard choropleth map:
+
+```{r}
+tmap_mode("plot")
+qtm(mpsz_pop2020, 
+    fill = "DEPENDENCY")
+```
+
+To learn from code above:
+
+-   *tmap_mode()* with "plot" option is used to produce a static map
+-   use "view" option for interactive mode
+-   *fill* argument is used to map the attribute (i.e. DEPENDENCY)
+
+## 2.3.2 Creating a choropleth map using tmap's elements
+
+use tmap's drawing elements to draw high quality cartographic choropleth map:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "Dependency ratio") +
+  tm_layout(main.title = "Distribution of Dependency Ratio by planning subzone",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from Urban Redevelopment Authorithy (URA)\n and Population data from Department of Statistics DOS", 
+             position = c("left", "bottom"))
+```
+
+### 2.3.2.1 Drawing a base map
+
+-   tmap function used: *tm_shape()*
+-   *tm_shape()* is the basic building block
+-   followed by 1 or more layer elements: *tm_fill()*, *tm_polygons()*
+
+Defining input data (*mpsz_pop2020*) using *tm_shape()* and using *tm_polygons()* to draw planning subzone polygons:
+
+```{r}
+tm_shape(mpsz_pop2020) +
+  tm_polygons()
+```
+
+### 2.3.2.2 Drawing a choropleth map using *tm_polygons()*
+
+To draw a choropleth map showing the geographical distribution of a selected variable by planning subzone:
+
+Assign target variable (eg *Dependency*) to *tm_polygons()*
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_polygons("DEPENDENCY")
+```
+
+To learn about *tm_polygons()*:
+
+-   "pretty" is the default interval binning to draw choropleth maps
+-   `YlOrRd` of ColorBrewer is the default colour scheme
+-   missing values will be shaded in grey by default
+
+### 2.3.2.3 Drawing a choropleth map using *tm_fill()* and *tm_border()*
+
+-   *tm_polygons()* is a wrapper of *tm_fill()* and *tm_border()*
+-   *tm_fill()* shades polygons using default colour scheme
+-   *tm_borders()* adds borders of shapefile onto the choropleth map
+
+Drawing choropleth using *tm_fill()* only:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY")
+```
+
+Adding boundary of planning subzones using *tm_borders()*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY") +
+  tm_borders(lwd = 0.1,  alpha = 1)
+```
+
+-   the alpha argument is used to define transparency number between 0 (totally transparent) and 1 (not transparent)
+-   by default, alpha value of the col is used (normally 1)
+
+Arguments for *tm_borders()*:
+
+-   col = border colour
+-   lwd = border line width (default = 1)
+-   lty = border line type (default = 'solid')
+
+## 2.3.3 Data classification methods of **tmap**
+
+Most choropleth maps employ some methods of data classification.
+
+The point of classification is to take a large number of observations and group them into data ranges or classes.
+
+**tmap** provides a total ten data classification methods, namely: *fixed, sd, equal, pretty (default), quantile, kmeans, hclust, bclust, fisher,* and *jenks*.
+
+To define a data classification method, the *style* argument of *tm_fill()* or *tm_polygons()* will be used.
+
+### 2.3.3.1 Plotting choropleth maps with built-in classification methods
+
+Quantile data classification using 5 classes:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "jenks") +
+  tm_borders(alpha = 0.5)
+```
+
+Using *equal* data classification method:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "equal") +
+  tm_borders(alpha = 0.5)
+```
+
+::: callout-note
+## Note
+
+Note: the **distribution of quantile** data classification method is **more evenly distributed** than equal data classification method
+:::
+
+### \[DIY\] Preparing choropleth maps using other tmap classification methods:
+
+Using *fisher*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "fisher") +
+  tm_borders(alpha = 0.5)
+```
+
+Using *sd*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "sd") +
+  tm_borders(alpha = 0.5)
+```
+
+Using *kmeans*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "kmeans") +
+  tm_borders(alpha = 0.5)
+```
+
+Using *hclust*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "hclust") +
+  tm_borders(alpha = 0.5)
+```
+
+Using *bclust*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "bclust") +
+  tm_borders(alpha = 0.5)
+```
+
+Using *quantile*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 5,
+          style = "quantile") +
+  tm_borders(alpha = 0.5)
+```
+
+Their differences:
+
+### \[DIY\] Preparing choropleth maps with similar classification (*jenks*) but different numbers of classes
+
+Using 2 classes:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 2,
+          style = "jenks") +
+  tm_borders(alpha = 0.5)
+```
+
+Using 6 classes:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 6,
+          style = "jenks") +
+  tm_borders(alpha = 0.5)
+```
+
+Using 10 classes:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 10,
+          style = "jenks") +
+  tm_borders(alpha = 0.5)
+```
+
+Using 20 classes:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 20,
+          style = "jenks") +
+  tm_borders(alpha = 0.5)
+```
+
+### 2.3.3.2 Plotting choropleth map with custom break
+
+-   For all the built-in styles, the category breaks are computed internally.
+-   In order to override these defaults, the breakpoints can be set explicitly by means of the breaks argument to the tm_fill().
+-   It is important to note that, in tmap the breaks include a minimum and maximum.
+-   As a result, in order to end up with n categories, n+1 elements must be specified in the breaks option (the values must be in increasing order).
+
+Getting descriptive statistics on the variable before setting the break points:
+
+Computing and Displaying statistics of **DEPENDENCY** field:
+
+```{r}
+summary(mpsz_pop2020$DEPENDENCY)
+```
+
+With reference to the results above:
+
+-   set break point at 0.60, 0.70, 0.80, and 0.90
+-   include a minimum and maximum, which we set at 0 and 100
+-   *breaks* vector is c(0, 0.60, 0.70, 0.80, 0.90, 1.00)
+
+Plotting choropleth map:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          breaks = c(0, 0.60, 0.70, 0.80, 0.90, 1.00)) +
+  tm_borders(alpha = 0.5)
+```
+
+## 2.3.4 Colour Scheme
+
+**tmap** supports colour ramps:
+
+-   defined by user
+-   predefined set of colour ramps from **RColorBrewer** package
+
+### 2.3.4.1 Using ColourBrewer palette
+
+use *palette* argument in *tm_fill()*
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          n = 6,
+          style = "quantile",
+          palette = "Blues") +
+  tm_borders(alpha = 0.5)
+```
+
+To reverse colour shading, add a "-" prefix:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY",
+          style = "quantile",
+          palette = "-Greens") +
+  tm_borders(alpha = 0.5)
+```
+
+## 2.3.5 Map Layouts
+
+-   Map layout refers to the combination of all map elements into a cohensive map.
+-   Map elements include among others the objects to be mapped, the title, the scale bar, the compass, margins and aspects ratios.
+-   Colour settings and data classification methods covered in the previous section relate to the palette and break-points are used to affect how the map looks.
+
+### 2.3.5.1 Map Legend
+
+use *legend* options to change placement, format and appearance of the legend
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY", 
+          style = "jenks", 
+          palette = "Blues", 
+          legend.hist = TRUE, 
+          legend.is.portrait = TRUE,
+          legend.hist.z = 0.1) +
+  tm_layout(main.title = "Distribution of Dependency Ratio by planning subzone \n(Jenks classification)",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            legend.outside = FALSE,
+            legend.position = c("right", "bottom"),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)
+```
+
+### 2.3.5.2 Map Style using *tmap_style()*
+
+to change a wide variety of layout settings
+
+Using *classic* style:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY", 
+          style = "quantile", 
+          palette = "-Greens") +
+  tm_borders(alpha = 0.5) +
+  tmap_style("classic")
+```
+
+### 2.3.5.3 Cartographic Furniture
+
+we can draw other map furniture:
+
+-   compass using *tm_compass()*
+-   scale bar using *tm_scale_bar()*
+-   grid lines using *tm_grid()*
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill("DEPENDENCY", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "No. of persons") +
+  tm_layout(main.title = "Distribution of Dependency Ratio \nby planning subzone",
+            main.title.position = "center",
+            main.title.size = 1.2,
+            legend.height = 0.45, 
+            legend.width = 0.35,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar(width = 0.15) +
+  tm_grid(lwd = 0.1, alpha = 0.2) +
+  tm_credits("Source: Planning Sub-zone boundary from Urban Redevelopment Authorithy (URA)\n and Population data from Department of Statistics DOS", 
+             position = c("left", "bottom"))
+```
+
+To reset default style:
+
+```{r}
+tmap_style("white")
+```
+
+## 2.3.6 Drawing Small Multiple Choropleth Maps
+
+**Small multiple maps**, also referred to as **facet maps**, are composed of many maps arrange side-by-side, and sometimes stacked vertically. Small multiple maps enable the visualisation of how spatial relationships change with respect to another variable, such as time.
+
+In **tmap**, small multiple maps can be plotted in three ways:
+
+by assigning multiple values to at least one of the asthetic arguments, by defining a group-by variable in *tm_facets()*, and by creating multiple stand-alone maps with *tmap_arrange()*.
+
+### 2.3.6.1 By assigning multiple values to at least one of the aesthetic arguments
+
+Creating small multiple choropleth maps by defining **ncols** in *tm_fill()*:
+
+```{r}
+tm_shape(mpsz_pop2020)+
+  tm_fill(c("YOUNG", "AGED"),
+          style = "equal", 
+          palette = "Blues") +
+  tm_layout(legend.position = c("right", "bottom")) +
+  tm_borders(alpha = 0.5) +
+  tmap_style("white")
+```
+
+```{r}
+tm_shape(mpsz_pop2020)+ 
+  tm_polygons(c("DEPENDENCY","AGED"),
+          style = c("equal", "quantile"), 
+          palette = list("Blues","Greens")) +
+  tm_layout(legend.position = c("right", "bottom"))
+```
+
+### 2.3.6.2 By defining a group-by variable in *tm_facets()*
+
+Creating small multiple choropleth maps using *tm_facets()*:
+
+```{r}
+tm_shape(mpsz_pop2020) +
+  tm_fill("DEPENDENCY",
+          style = "quantile",
+          palette = "Blues",
+          thres.poly = 0) + 
+  tm_facets(by="REGION_N", 
+            free.coords=TRUE, 
+            drop.shapes=TRUE) +
+  tm_layout(legend.show = FALSE,
+            title.position = c("center", "center"), 
+            title.size = 20) +
+  tm_borders(alpha = 0.5)
+```
+
+### 2.3.6.3 By creating multiple stand-alone maps with tmap_arrange()
+
+Creating small multiple choropleth maps by creating multiple stand-alone maps using *tmap_arrange()*:
+
+```{r}
+youngmap <- tm_shape(mpsz_pop2020)+ 
+  tm_polygons("YOUNG", 
+              style = "quantile", 
+              palette = "Blues")
+
+agedmap <- tm_shape(mpsz_pop2020)+ 
+  tm_polygons("AGED", 
+              style = "quantile", 
+              palette = "Blues")
+
+tmap_arrange(youngmap, agedmap, asp=1, ncol=2)
+```
+
+## 2.3.7 Mapping Spatial Object Meeting a Selection Criterion
+
+Instead of creating small multiple choropleth map, you can also use selection function to map spatial objects meeting the selection criterion.
+
+```{r}
+tm_shape(mpsz_pop2020[mpsz_pop2020$REGION_N=="CENTRAL REGION", ])+
+  tm_fill("DEPENDENCY", 
+          style = "quantile", 
+          palette = "Blues", 
+          legend.hist = TRUE, 
+          legend.is.portrait = TRUE,
+          legend.hist.z = 0.1) +
+  tm_layout(legend.outside = TRUE,
+            legend.height = 0.45, 
+            legend.width = 5.0,
+            legend.position = c("right", "bottom"),
+            frame = FALSE) +
+  tm_borders(alpha = 0.5)
 ```
