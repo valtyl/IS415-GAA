@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2023-01-18">
+<meta name="dcterms.date" content="2023-01-17">
 
 <title>IS415-GAA - In-class Exercise 2: Geospatial Data Wrangling</title>
 <style>
@@ -169,6 +169,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex02/In-class_Ex02.html">
  <span class="dropdown-text">In-class Exercise 2</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-class_Ex/In-class_Ex03/In-class_Ex03.html">
+ <span class="dropdown-text">In-class Exercise 3</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -199,10 +203,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link active" data-scroll-target="#getting-started">2.1 Getting Started</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">1 Overview</a>
   <ul class="collapse">
-  <li><a href="#installing-and-loading-r-packages" id="toc-installing-and-loading-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-r-packages">2.1.1 Installing and Loading R packages</a></li>
+  <li><a href="#setting-the-scene" id="toc-setting-the-scene" class="nav-link" data-scroll-target="#setting-the-scene">1.1 Setting the Scene</a></li>
+  <li><a href="#objectives" id="toc-objectives" class="nav-link" data-scroll-target="#objectives">1.2 Objectives</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">1.3 The Data</a>
+  <ul class="collapse">
+  <li><a href="#apstial-data" id="toc-apstial-data" class="nav-link" data-scroll-target="#apstial-data">1.3.1 Apstial data</a></li>
+  <li><a href="#geospatial-data" id="toc-geospatial-data" class="nav-link" data-scroll-target="#geospatial-data">1.3.2 Geospatial data</a></li>
   </ul></li>
+  <li><a href="#the-task" id="toc-the-task" class="nav-link" data-scroll-target="#the-task">1.4 The Task</a></li>
+  </ul></li>
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">2 Getting Started</a>
+  <ul class="collapse">
+  <li><a href="#installing-and-loading-r-packages" id="toc-installing-and-loading-r-packages" class="nav-link" data-scroll-target="#installing-and-loading-r-packages">2.1 Installing and Loading R packages</a></li>
   <li><a href="#importing-the-data" id="toc-importing-the-data" class="nav-link" data-scroll-target="#importing-the-data">2.2 Importing the Data</a>
   <ul class="collapse">
   <li><a href="#importing-geospatial-data" id="toc-importing-geospatial-data" class="nav-link" data-scroll-target="#importing-geospatial-data">2.2.1 Importing Geospatial Data</a></li>
@@ -210,9 +224,19 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   </ul></li>
   <li><a href="#converting-aspatial-data-into-geospatial-data" id="toc-converting-aspatial-data-into-geospatial-data" class="nav-link" data-scroll-target="#converting-aspatial-data-into-geospatial-data">2.3 Converting Aspatial Data into Geospatial Data</a></li>
   <li><a href="#projection-transformation" id="toc-projection-transformation" class="nav-link" data-scroll-target="#projection-transformation">2.4 Projection Transformation</a></li>
-  <li><a href="#derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level" id="toc-derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level" class="nav-link" data-scroll-target="#derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level">2.5 Derive the Proportion of functional and non-functional water point at LGA level</a></li>
-  <li><a href="#combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame" id="toc-combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame" class="nav-link" data-scroll-target="#combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame">2.6 Combine the Geospatial and Aspatial Data Frame into Simple Feature Data Frame</a></li>
-  <li><a href="#visualise-the-distribution-of-water-point" id="toc-visualise-the-distribution-of-water-point" class="nav-link" data-scroll-target="#visualise-the-distribution-of-water-point">2.7 Visualise the Distribution of Water Point</a></li>
+  </ul></li>
+  <li><a href="#geospatial-data-cleaning" id="toc-geospatial-data-cleaning" class="nav-link" data-scroll-target="#geospatial-data-cleaning">3 Geospatial Data Cleaning</a>
+  <ul class="collapse">
+  <li><a href="#excluding-redundant-fields" id="toc-excluding-redundant-fields" class="nav-link" data-scroll-target="#excluding-redundant-fields">3.1 Excluding redundant fields</a></li>
+  <li><a href="#checking-for-duplicate-name" id="toc-checking-for-duplicate-name" class="nav-link" data-scroll-target="#checking-for-duplicate-name">3.2 Checking for duplicate name</a></li>
+  </ul></li>
+  <li><a href="#data-wrangling-for-water-point-data" id="toc-data-wrangling-for-water-point-data" class="nav-link" data-scroll-target="#data-wrangling-for-water-point-data">4 Data Wrangling for Water Point Data</a>
+  <ul class="collapse">
+  <li><a href="#extracting-water-point-data" id="toc-extracting-water-point-data" class="nav-link" data-scroll-target="#extracting-water-point-data">4.1 Extracting Water Point Data</a></li>
+  <li><a href="#performing-point-in-polygon-count" id="toc-performing-point-in-polygon-count" class="nav-link" data-scroll-target="#performing-point-in-polygon-count">4.2 Performing Point-in-Polygon Count</a></li>
+  <li><a href="#visualising-attributes-by-using-statistical-graphs" id="toc-visualising-attributes-by-using-statistical-graphs" class="nav-link" data-scroll-target="#visualising-attributes-by-using-statistical-graphs">4.3 Visualising attributes by using statistical graphs</a></li>
+  <li><a href="#saving-the-analytical-data-in-rds-format" id="toc-saving-the-analytical-data-in-rds-format" class="nav-link" data-scroll-target="#saving-the-analytical-data-in-rds-format">4.4 Saving the analytical data in rds format</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -232,20 +256,55 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 18, 2023</p>
+      <p class="date">January 17, 2023</p>
     </div>
   </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">January 26, 2023</p>
+    </div>
+  </div>
     
   </div>
   
 
 </header>
 
+<section id="overview" class="level1">
+<h1>1 Overview</h1>
+<section id="setting-the-scene" class="level2">
+<h2 class="anchored" data-anchor-id="setting-the-scene">1.1 Setting the Scene</h2>
+<p>Water is an important resource to mankind. Clean and accessible water is critical to human health. It provides a healthy environment, a sustainable economy, reduces poverty and ensures peace and security. Yet over 40% of the global population does not have access to sufficient clean water. By 2025, 1.8 billion people will be living in countries or regions with absolute water scarcity, according to UN-Water. The lack of water poses a major threat to several sectors, including food security. Agriculture uses about 70% of the world’s accessible freshwater.</p>
+<p>Developing countries are most affected by water shortages and poor water quality. Up to 80% of illnesses in the developing world are linked to inadequate water and sanitation. Despite technological advancement, providing clean water to the rural community is still a major development issues in many countries globally, especially countries in the Africa continent.</p>
+<p>To address the issue of providing clean and sustainable water supply to the rural community, a global <a href="https://www.waterpointdata.org/about/">Water Point Data Exchange (WPdx)</a> project has been initiated. The main aim of this initiative is to collect water point related data from rural areas at the water point or small water scheme level and share the data via WPdx Data Repository, a cloud-based data library. What is so special of this project is that data are collected based on <a href="https://www.waterpointdata.org/wp-content/uploads/2021/04/WPDx_Data_Standard.pdf">WPDx Data Standard</a>.</p>
+</section>
+<section id="objectives" class="level2">
+<h2 class="anchored" data-anchor-id="objectives">1.2 Objectives</h2>
+<p>Geospatial analytics hold tremendous potential to address complex problems facing society. In this study, you are tasked to apply appropriate geospatial data wrangling methods to prepare the data for water point mapping study. For the purpose of this study, Nigeria will be used as the study country.</p>
+</section>
+<section id="the-data" class="level2">
+<h2 class="anchored" data-anchor-id="the-data">1.3 The Data</h2>
+<section id="apstial-data" class="level3">
+<h3 class="anchored" data-anchor-id="apstial-data">1.3.1 Apstial data</h3>
+<p>For the purpose of this assignment, data from <a href="https://www.waterpointdata.org/access-data/">WPdx Global Data Repositories</a> will be used. There are two versions of the data. They are: WPdx-Basic and WPdx+. You are required to use WPdx+ data set.</p>
+</section>
+<section id="geospatial-data" class="level3">
+<h3 class="anchored" data-anchor-id="geospatial-data">1.3.2 Geospatial data</h3>
+<p>Nigeria Level-2 Administrative Boundary (also known as Local Government Area) polygon features GIS data will be used in this take-home exercise. The data can be downloaded either from <a href="https://data.humdata.org/">The Humanitarian Data Exchange</a> portal or <a href="https://www.geoboundaries.org/">geoBoundaries</a>.</p>
+</section>
+</section>
+<section id="the-task" class="level2">
+<h2 class="anchored" data-anchor-id="the-task">1.4 The Task</h2>
+<p>The specific tasks of this take-home exercise are as follows:</p>
+<p>Using appropriate sf method, import the shapefile into R and save it in a simple feature data frame format. Note that there are three Projected Coordinate Systems of Nigeria, they are: EPSG: 26391, 26392, and 26303. You can use any one of them. Using appropriate tidyr and dplyr methods, derive the number of functional and non-functional water points at LGA level. Combining the geospatial and aspatial data frame into simple feature data frame. Visualising the distribution of water point by using appropriate statistical methods.</p>
+</section>
+</section>
 <section id="getting-started" class="level1">
-<h1>2.1 Getting Started</h1>
+<h1>2 Getting Started</h1>
 <section id="installing-and-loading-r-packages" class="level2">
-<h2 class="anchored" data-anchor-id="installing-and-loading-r-packages">2.1.1 Installing and Loading R packages</h2>
+<h2 class="anchored" data-anchor-id="installing-and-loading-r-packages">2.1 Installing and Loading R packages</h2>
 <p>Install and load sf, tidyverse, funModeling:</p>
 <div class="cell">
 <details>
@@ -254,31 +313,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </details>
 </div>
 </section>
-</section>
-<section id="importing-the-data" class="level1">
-<h1>2.2 Importing the Data</h1>
-<section id="importing-geospatial-data" class="level2">
-<h2 class="anchored" data-anchor-id="importing-geospatial-data">2.2.1 Importing Geospatial Data</h2>
+<section id="importing-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-the-data">2.2 Importing the Data</h2>
+<section id="importing-geospatial-data" class="level3">
+<h3 class="anchored" data-anchor-id="importing-geospatial-data">2.2.1 Importing Geospatial Data</h3>
 <p>Nigeria data from Humanitarian Data Exchange (The NGA Data Set):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>NGA <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial"</span>, <span class="at">layer =</span> <span class="st">"nga_polbndl_adm2_1m_salb"</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs=</span><span class="dv">26392</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>NGA <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial/"</span>, <span class="at">layer =</span> <span class="st">"nga_admbnda_adm2"</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs=</span><span class="dv">26392</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Reading layer `nga_polbndl_adm2_1m_salb' from data source 
+<pre><code>Reading layer `nga_admbnda_adm2' from data source 
   `C:\valtyl\IS415-GAA\In-class_Ex\In-class_Ex02\data\geospatial' 
   using driver `ESRI Shapefile'
-Simple feature collection with 1685 features and 1 field
-Geometry type: LINESTRING
+Simple feature collection with 774 features and 16 fields
+Geometry type: MULTIPOLYGON
 Dimension:     XY
-Bounding box:  xmin: 2.744192 ymin: 4.363015 xmax: 14.57926 ymax: 13.90103
+Bounding box:  xmin: 2.668534 ymin: 4.273007 xmax: 14.67882 ymax: 13.89442
 Geodetic CRS:  WGS 84</code></pre>
 </div>
 </div>
 <p>The geoBoundaries Data Set:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>geoNGA <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial/geoBoundaries"</span>, <span class="at">layer =</span> <span class="st">"geoBoundaries-NGA-ADM2"</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">26392</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>geoNGA <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geospatial/"</span>, <span class="at">layer =</span> <span class="st">"geoBoundaries-NGA-ADM2"</span>) <span class="sc">%&gt;%</span> <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">26392</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Reading layer `geoBoundaries-NGA-ADM2' from data source 
-  `C:\valtyl\IS415-GAA\In-class_Ex\In-class_Ex02\data\geospatial\geoBoundaries' 
+  `C:\valtyl\IS415-GAA\In-class_Ex\In-class_Ex02\data\geospatial' 
   using driver `ESRI Shapefile'
 Simple feature collection with 774 features and 5 fields
 Geometry type: MULTIPOLYGON
@@ -291,20 +349,27 @@ Geodetic CRS:  WGS 84</code></pre>
 <ul>
 <li>polygon feature shapefile with 774 features and 5 fields</li>
 <li>%&gt;% is a function called piping from tidyverse to emphasise a sequence of actions rather than the object that the actions are being performed on</li>
+<li>st_transform() to transform the data from WGS84 to the nigeria coordinate system</li>
 <li>without the transformation, the geometric data will have very small numbers (in decimal degree)</li>
 <li>EPSG: <a href="https://epsg.io/26391">26391</a>, <a href="https://epsg.io/26392">26392</a> and <a href="https://epsg.io/26303">26303</a> are projected coordinate systems for different parts of Nigeria</li>
 <li>since it is in WGS84, we should do the transformation!</li>
 </ul>
 </section>
-<section id="importing-aspatial-data" class="level2">
-<h2 class="anchored" data-anchor-id="importing-aspatial-data">2.2.2 Importing Aspatial Data</h2>
+<section id="importing-aspatial-data" class="level3">
+<h3 class="anchored" data-anchor-id="importing-aspatial-data">2.2.2 Importing Aspatial Data</h3>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>wp_nga <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/aspatial/WPdx.csv"</span>) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="st">`</span><span class="at">#clean_country_name</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Nigeria"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<ul>
+<li>filter() is to select the rows that have ‘Nigeria’ under ‘#clean_country_name’ column</li>
+<li>use ticks for field name, and quotes for values</li>
+</ul>
 </section>
 </section>
-<section id="converting-aspatial-data-into-geospatial-data" class="level1">
-<h1>2.3 Converting Aspatial Data into Geospatial Data</h1>
+<section id="converting-aspatial-data-into-geospatial-data" class="level2">
+<h2 class="anchored" data-anchor-id="converting-aspatial-data-into-geospatial-data">2.3 Converting Aspatial Data into Geospatial Data</h2>
+<p>Converting the water point data into sf point features:</p>
+<p>Step 1 - Convert <a href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry">wkt</a> field into sfc field using <code>st_as_sfc()</code> data type</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>wp_nga<span class="sc">$</span>Geometry <span class="ot">=</span> <span class="fu">st_as_sfc</span>(wp_nga<span class="sc">$</span><span class="st">`</span><span class="at">New Georeferenced Column</span><span class="st">`</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>wp_nga</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -331,7 +396,8 @@ Geodetic CRS:  WGS 84</code></pre>
 #   `#fecal_coliform_value` &lt;dbl&gt;, `#subjective_quality` &lt;chr&gt;, …</code></pre>
 </div>
 </div>
-<p>Converting into a point sf data frame:</p>
+<p>Step 2 - Convert from tibble data frame into a point sf data frame using <code>st_sf()</code>:</p>
+<p>Important to include the referencing system of the data into the sf object</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>wp_sf <span class="ot">&lt;-</span> <span class="fu">st_sf</span>(wp_nga, <span class="at">crs=</span><span class="dv">4326</span>)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>wp_sf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -363,9 +429,15 @@ Geodetic CRS:  WGS 84
 #   `#fecal_coliform_value` &lt;dbl&gt;, `#subjective_quality` &lt;chr&gt;, …</code></pre>
 </div>
 </div>
+<ul>
+<li>aspatial data don’t have spatial properties</li>
+<li>step 1 - when we convert aspatial into geospatial we need to take note of the data type and convert it into the appropriate data type</li>
+<li>step 2 - aspatial don’t have projection information so need to tell R what is the projected coordinate system that it is using</li>
+<li>use crs = 4326 bc the coordinates in step 1 are in decimal degree and don’t have projection information, hence we need to put back original projection information first which is wgs84 and 4326 is the code used for wgs84</li>
+</ul>
 </section>
-<section id="projection-transformation" class="level1">
-<h1>2.4 Projection Transformation</h1>
+<section id="projection-transformation" class="level2">
+<h2 class="anchored" data-anchor-id="projection-transformation">2.4 Projection Transformation</h2>
 <p>Transforming the projection from wgs84 to the appropriate projected coordinate system of Nigeria (26392):</p>
 <p>aspatial data &gt;&gt; geospatial data &gt;&gt; Nigeria’s PCS</p>
 <div class="cell">
@@ -400,30 +472,237 @@ Projected CRS: Minna / Nigeria Mid Belt
 </div>
 </div>
 </section>
-<section id="derive-the-proportion-of-functional-and-non-functional-water-point-at-lga-level" class="level1">
-<h1>2.5 Derive the Proportion of functional and non-functional water point at LGA level</h1>
-<p>Proportion of functional water point:</p>
+</section>
+<section id="geospatial-data-cleaning" class="level1">
+<h1>3 Geospatial Data Cleaning</h1>
+<section id="excluding-redundant-fields" class="level2">
+<h2 class="anchored" data-anchor-id="excluding-redundant-fields">3.1 Excluding redundant fields</h2>
+<p>NGA sf data.frame consists of many redundant fields. The code chunk below uses <code>select()</code> of dplyr to retain column 3, 4, 8 and 9. Do you know why?</p>
 <div class="cell">
-
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>NGA <span class="ot">&lt;-</span> NGA <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(<span class="dv">3</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">8</span><span class="sc">:</span><span class="dv">9</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Proportion of non-functional water point:</p>
+<ul>
+<li>select() - to select FIELDS we want to retain</li>
+<li>filter() - to select ROWS we want to retain and we can include logical expression (eg. &gt;, &lt;, =, …)</li>
+<li>col 3 (ADM2_EN) is the <strong>state</strong> name, col 4 (ADM2_PCODE) is the <strong>code</strong> name</li>
+</ul>
+</section>
+<section id="checking-for-duplicate-name" class="level2">
+<h2 class="anchored" data-anchor-id="checking-for-duplicate-name">3.2 Checking for duplicate name</h2>
+<p>It is always important to check for duplicate name in the data main data fields. Using <code>duplicated()</code> of Base R, we can flag out LGA names that might be duplicated as shown in the code chunk below.</p>
 <div class="cell">
-
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="fu">duplicated</span>(NGA<span class="sc">$</span>ADM2_EN)<span class="sc">==</span><span class="cn">TRUE</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Bassa"    "Ifelodun" "Irepodun" "Nasarawa" "Obi"      "Surulere"</code></pre>
+</div>
+</div>
+<p>The printout above shows that there are 6 LGAs with the same name. A Google search using the coordinates showed that there are LGAs with the same name but are located in different states. For instances, there is a Bassa LGA in Kogi State and a Bassa LGA in Plateau State.</p>
+<p>Let us correct these errors by using the code chunk below.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">94</span>] <span class="ot">&lt;-</span> <span class="st">"Bassa, Kogi"</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">95</span>] <span class="ot">&lt;-</span> <span class="st">"Bassa, Plateau"</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">304</span>] <span class="ot">&lt;-</span> <span class="st">"Ifelodun, Kwara"</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">305</span>] <span class="ot">&lt;-</span> <span class="st">"Ifelodun, Osun"</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">355</span>] <span class="ot">&lt;-</span> <span class="st">"Irepodun, Kwara"</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">356</span>] <span class="ot">&lt;-</span> <span class="st">"Irepodun, Osun"</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">519</span>] <span class="ot">&lt;-</span> <span class="st">"Nasarawa, Kano"</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">520</span>] <span class="ot">&lt;-</span> <span class="st">"Nasarawa, Nasarawa"</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">546</span>] <span class="ot">&lt;-</span> <span class="st">"Obi, Benue"</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">547</span>] <span class="ot">&lt;-</span> <span class="st">"Obi, Nasarawa"</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">693</span>] <span class="ot">&lt;-</span> <span class="st">"Surulere, Lagos"</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="dv">694</span>] <span class="ot">&lt;-</span> <span class="st">"Surulere, Oyo"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>row number (eg. 94, 95) used to change the names. look into NGA data variable to see the row numbers</li>
+</ul>
+<p>Now, let us rerun the code chunk below to confirm that the duplicated name issue has been addressed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>NGA<span class="sc">$</span>ADM2_EN[<span class="fu">duplicated</span>(NGA<span class="sc">$</span>ADM2_EN)<span class="sc">==</span><span class="cn">TRUE</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>character(0)</code></pre>
+</div>
 </div>
 </section>
-<section id="combine-the-geospatial-and-aspatial-data-frame-into-simple-feature-data-frame" class="level1">
-<h1>2.6 Combine the Geospatial and Aspatial Data Frame into Simple Feature Data Frame</h1>
 </section>
-<section id="visualise-the-distribution-of-water-point" class="level1">
-<h1>2.7 Visualise the Distribution of Water Point</h1>
+<section id="data-wrangling-for-water-point-data" class="level1">
+<h1>4 Data Wrangling for Water Point Data</h1>
+<p>Exploratory Data Analysis (EDA) is a popular approach to gain initial understanding of the data. In the code chunk below, <code>freq()</code> of funModeling package is used to reveal the distribution of water point status visually.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(wp_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data =</span> wp_sf,</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'#status_clean'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     #status_clean frequency percentage cumulative_perc
+1                       Functional     45883      48.29           48.29
+2                   Non-Functional     29385      30.93           79.22
+3                             &lt;NA&gt;     10656      11.22           90.44
+4      Functional but needs repair      4579       4.82           95.26
+5 Non-Functional due to dry season      2403       2.53           97.79
+6        Functional but not in use      1686       1.77           99.56
+7         Abandoned/Decommissioned       234       0.25           99.81
+8                        Abandoned       175       0.18           99.99
+9 Non functional due to dry season         7       0.01          100.00</code></pre>
 </div>
 </div>
+<p>Figure above shows that there are nine classes in the <code>#status_clean</code> fields.</p>
+<p>Next, code chunk below will be used to perform the following data wrangling tasks</p>
+<ul>
+<li><code>rename()</code> of dplyr package is used to rename the column from #status_clean to status_clean for easier handling in subsequent steps.</li>
+<li><code>select()</code> of dplyr is used to include <code>status_clean</code> in the output sf data.frame.</li>
+<li><code>mutate()</code> and <code>replace_na()</code> are used to recode all the NA values in <code>status_clean</code> into unknown.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>wp_sf_nga <span class="ot">&lt;-</span> wp_sf <span class="sc">%&gt;%</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">status_clean =</span> <span class="st">'#status_clean'</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(status_clean) <span class="sc">%&gt;%</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">status_clean =</span> <span class="fu">replace_na</span>(</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    status_clean, <span class="st">"unknown"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>what was done above:</p>
+<ul>
+<li>renamed ‘#status_clean’ to ‘status_clean’</li>
+<li>select the water point data only with the column status_clean</li>
+<li>mutate and replace all the NA values under ‘status_clean’ with ‘unknown’</li>
+<li>NOTE: we only select status_clean field to be saved into wp_sf_nga but there will be another field called geometry bc wp_sf (simple feature data frame, geometric data) originally has the geometry field. if we don’t want the geometry field, we would have to drop it</li>
+</ul>
+<section id="extracting-water-point-data" class="level2">
+<h2 class="anchored" data-anchor-id="extracting-water-point-data">4.1 Extracting Water Point Data</h2>
+<p>Now we are ready to extract the water point data according to their status.</p>
+<p>The code chunk below is used to extract functional water point.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>wp_functional <span class="ot">&lt;-</span> wp_sf_nga <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(status_clean <span class="sc">%in%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="st">"Functional"</span>,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Functional but not in use"</span>,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Functional but needs repair"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>grouped all the ‘functional’ together into a simple feature data file (saved in wp_functional)</li>
+</ul>
+<p>The code chunk below is used to extract nonfunctional water point.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>wp_nonfunctional <span class="ot">&lt;-</span> wp_sf_nga <span class="sc">%&gt;%</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(status_clean <span class="sc">%in%</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">c</span>(<span class="st">"Abandoned/Decommissioned"</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Abandoned"</span>,</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Non-Functional due to dry season"</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Non-Functional"</span>,</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Non functional due to dry season"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>grouped all the ‘nonfunctional’ together into a simple feature data file (saved in wp_nonfunctional)</li>
+</ul>
+<p>The code chunk below is used to extract water point with unknown status.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>wp_unknown <span class="ot">&lt;-</span> wp_sf_nga <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(status_clean <span class="sc">==</span> <span class="st">"unknown"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>grouped all the ‘unknown’ together into a simple feature data file (saved in wp_unknown)</li>
+</ul>
+<p>Next, the code chunk below is used to perform a quick EDA on the derived sf data.frames.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data =</span> wp_functional,</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'status_clean'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 status_clean frequency percentage cumulative_perc
+1                  Functional     45883      87.99           87.99
+2 Functional but needs repair      4579       8.78           96.77
+3   Functional but not in use      1686       3.23          100.00</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data =</span> wp_nonfunctional,</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="at">input =</span> <span class="st">'status_clean'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                      status_clean frequency percentage cumulative_perc
+1                   Non-Functional     29385      91.25           91.25
+2 Non-Functional due to dry season      2403       7.46           98.71
+3         Abandoned/Decommissioned       234       0.73           99.44
+4                        Abandoned       175       0.54           99.98
+5 Non functional due to dry season         7       0.02          100.00</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">freq</span>(<span class="at">data =</span> wp_unknown,</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">input =</span> <span class="st">'status_clean'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  status_clean frequency percentage cumulative_perc
+1      unknown     10656        100             100</code></pre>
+</div>
+</div>
+</section>
+<section id="performing-point-in-polygon-count" class="level2">
+<h2 class="anchored" data-anchor-id="performing-point-in-polygon-count">4.2 Performing Point-in-Polygon Count</h2>
+<p>Next, we want to find out the number of total, functional, nonfunctional and unknown water points in each LGA. This is performed in the following code chunk.</p>
+<ul>
+<li>First, it identifies the functional water points in each LGA by using <code>st_intersects()</code> of sf package.</li>
+<li>Next, <code>length()</code> is used to calculate the number of functional water points that fall inside each LGA.</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>NGA_wp <span class="ot">&lt;-</span> NGA <span class="sc">%&gt;%</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">total_wp</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">lengths</span>(</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_intersects</span>(NGA, wp_sf_nga))) <span class="sc">%&gt;%</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">wp_functional</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">lengths</span>(</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_intersects</span>(NGA, wp_functional))) <span class="sc">%&gt;%</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">wp_nonfunctional</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">lengths</span>(</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_intersects</span>(NGA, wp_nonfunctional))) <span class="sc">%&gt;%</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">wp_unknown</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">lengths</span>(</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_intersects</span>(NGA, wp_unknown)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Notice that four new derived fields have been added into <em>NGA_wp</em> sf data.frame.</p>
+<ul>
+<li>Total of 5+4 = 9 fields now</li>
+</ul>
+</section>
+<section id="visualising-attributes-by-using-statistical-graphs" class="level2">
+<h2 class="anchored" data-anchor-id="visualising-attributes-by-using-statistical-graphs">4.3 Visualising attributes by using statistical graphs</h2>
+<p>In this code chunk below, appropriate functions of <a href="https://ggplot2.tidyverse.org/">ggplot2</a> package is used to reveal the distribution of total water points by LGA in histogram.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> NGA_wp,</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> total_wp)) <span class="sc">+</span> </span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins=</span><span class="dv">20</span>,</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color=</span><span class="st">"black"</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill=</span><span class="st">"light blue"</span>) <span class="sc">+</span></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="fu">aes</span>(<span class="at">xintercept=</span><span class="fu">mean</span>(</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    total_wp, <span class="at">na.rm=</span>T)),</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">color=</span><span class="st">"red"</span>, </span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">linetype=</span><span class="st">"dashed"</span>, </span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">size=</span><span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Distribution of total water points by LGA"</span>) <span class="sc">+</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"No. of water points"</span>) <span class="sc">+</span></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"No. of</span><span class="sc">\n</span><span class="st">LGAs"</span>) <span class="sc">+</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title.y=</span><span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="In-class_Ex02_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="saving-the-analytical-data-in-rds-format" class="level2">
+<h2 class="anchored" data-anchor-id="saving-the-analytical-data-in-rds-format">4.4 Saving the analytical data in rds format</h2>
+<p>In order to retain the sf object structure for subsequent analysis, it is recommended to save the sf data.frame into rds format.</p>
+<p>In the code chunk below, <a href="https://readr.tidyverse.org/reference/read_rds.html"><code>write_rds()</code></a> of <a href="https://readr.tidyverse.org/"><strong>readr</strong></a> package is used to export an sf data.frame into rds format.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>    <span class="fu">write_rds</span>(NGA_wp, <span class="st">"data/rds/NGA_wp.rds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>rds data type allows us to retrain the data structure inside, keep the simple feature data properties</li>
+</ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
