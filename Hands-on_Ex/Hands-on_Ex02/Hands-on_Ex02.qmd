@@ -2,7 +2,8 @@
 title: "Hands-on Exercise 2: Choropleth Mapping with R"
 execute: 
   warning: false
-date: "`r Sys.Date()`"
+date: "20 January 2023"
+modified-date: "`r Sys.Date()`"
 ---
 
 # 2.1 Getting Started
