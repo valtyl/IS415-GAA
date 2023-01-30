@@ -128,6 +128,10 @@ Notice that at the interactive mode, **tmap** is using [**leaflet for R**](https
 
 Although simple feature data frame is gaining popularity again sp's Spatial\* classes, there are, however, many geospatial analysis packages require the input geospatial data in sp's Spatial\* classes. In this section, you will learn how to convert simple feature data frame to sp's Spatial\* class.
 
+-   3 steps to converting the simple feature data frame
+-   need to do this if u r importing the data using sf function & want to use spatstat
+-   1\) convert to sp's spatial class 2) convert into generic sp format 3) convert into spatstat's ppp
+
 ## 4.5.1 Converting sf data frames to sp's Spatial\* class
 
 The code chunk below uses [*as_Spatial()*](https://r4gdsa.netlify.app/chap04.html) of **sf** package to convert the three geospatial data from simple feature data frame to sp's Spatial\* class.
