@@ -310,7 +310,7 @@ In order to retain the sf object structure for subsequent analysis, it is recomm
 In the code chunk below, [`write_rds()`](https://readr.tidyverse.org/reference/read_rds.html) of [**readr**](https://readr.tidyverse.org/) package is used to export an sf data.frame into rds format.
 
 ```{r}
-    write_rds(NGA_wp, "data/rds/NGA_wp.rds")
+write_rds(NGA_wp, "data/rds/NGA_wp.rds")
 ```
 
 -   rds data type allows us to retrain the data structure inside, keep the simple feature data properties
