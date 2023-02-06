@@ -1,5 +1,5 @@
 ---
-title: "In-class Exercise 5: 2nd Order Spatial Point Patterns Analysis Methods"
+title: "In-class Exercise 5: Advanced Spatial Point Patterns Analysis: Local Co-Location Quotient"
 execute: 
   message: true
   warning: false
@@ -13,3 +13,111 @@ format: html
 ---
 
 # 1.1 Overview
+
+# 1.2 The data
+
+# 1.3 Installing and Loading the R packages
+
+```{r}
+pacman::p_load(tidyverse, sf, sfdep, tmap)
+```
+
+# 1.4 Spatial Data Wrangling
+
+## 1.4.1 Importing Spatial Data
+
+```{r}
+studyArea <- st_read(dsn = "data", layer="study_area") %>% st_transform(crs = 3829)
+```
+
+-   [3829](https://epsg.io/3829) is the projection system of taiwan
+-   taiwan has 2 projections, 1 locally taiwan (3829), 1 taiwan + china
+
+```{r}
+stores <- st_read(dsn = "data", layer="stores") %>% st_transform(crs = 3829)
+```
+
+## 1.4.2 Visualising the sf layers
+
+```{r}
+tmap_mode("view")
+tm_shape(studyArea) +
+  tm_polygons() +
+  tm_shape(stores) +
+  tm_dots(col = "Name",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(12,16))
+```
+
+-   always plot polygons FIRST then points
+
+# 1.5 Local Colocation Quotients (LCLQ)
+
+```{r}
+nb <- include_self(
+  st_knn(st_geometry(stores), 6)
+)
+```
+
+-   nb: nearest neighbours list
+-   6: search for the 6 nearest neighbours (good to use even numbers when use `include_self`)
+-   `include_self`: so it will include myself and the neighbours (6+1)
+
+```{r}
+wt <- st_kernel_weights(nb,
+                        stores,
+                        "gaussian",
+                        adaptive = TRUE)
+```
+
+-   stores is the target
+-   `st_kernel_weights`: convert into a weights matrix
+-   nearer get higher weights, further get lower weights
+
+```{r}
+FamilyMart <- stores %>%
+  filter(Name == "Family Mart")
+A <- FamilyMart$Name
+```
+-   lat, long in the data is not important since we alr have the geometry column. lat, long can be dropped if want to
+
+```{r}
+SevenEleven <- stores %>%
+  filter(Name == "7-Eleven")
+B <- SevenEleven$Name
+```
+
+```{r}
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+-   A: the target
+-   B: the neighbour
+-   nb: neighbours list
+-   wt: weights
+-   want to find out if target is colocated with the neighbour
+-   49: running 50 simulations
+-   output (click LCLQ datatable): first col is whether there is a neighbour or not, second col is p-values. there are different levels of p-values. NA indicates that they cannot find useful indexes to work wtih
+
+```{r}
+LCLQ_stores <- cbind(stores, LCLQ)
+```
+-   total points is 1409
+-   563 (family mart) + 846 (7-11)
+-   `cbind()`: combining the stores and the local colocation quotient table (make sure the results of both are NOT SORTED before using `cbind()` else will append wrong info)
+-   cannot do relational join like left.join() or right.join() bc both dont have unique identifier
+-   cbind()'s first variable should be stores so that they will inherit the property of stores (which is geometry). they always inherit the property of the first variable
+
+```{r}
+tmap_mode("view")
+tm_shape(studyArea) +
+  tm_polygons() +
+  tm_shape(LCLQ_stores) +
+  tm_dots(col = "X7.Eleven",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(12,16))
+```
