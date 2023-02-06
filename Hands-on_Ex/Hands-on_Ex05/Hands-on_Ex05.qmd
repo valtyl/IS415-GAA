@@ -466,7 +466,7 @@ plot(F_CK.csr)
 
 ### 5.8.3.1 Computing F-function estimation
 
-Monte Carlo test with F-fucntion
+Monte Carlo test with F-function
 
 ```{r}
 F_tm = Fest(childcare_tm_ppp, correction = "best")
@@ -499,7 +499,7 @@ K-function measures the number of events found up to a given distance of any par
 
 ## 5.9.1 Choa Chu Kang planning area
 
-### 5.9.1.1 Computing K-fucntion estimate
+### 5.9.1.1 Computing K-function estimate
 
 ```{r}
 K_ck = Kest(childcare_ck_ppp, correction = "Ripley")
@@ -528,7 +528,7 @@ plot(K_ck.csr, . - r ~ r, xlab="d", ylab="K(d)-r")
 
 ## 5.9.2 Tampines planning area
 
-### 5.9.2.1 Computing K-fucntion estimation
+### 5.9.2.1 Computing K-function estimation
 
 ```{r}
 K_tm = Kest(childcare_tm_ppp, correction = "Ripley")
@@ -564,7 +564,7 @@ In this section, you will learn how to compute L-function estimation by using [*
 
 ## 5.10.1 Choa Chu Kang planning area
 
-### 5.10.1.1 Computing L Fucntion estimation
+### 5.10.1.1 Computing L Function estimation
 
 ```{r}
 L_ck = Lest(childcare_ck_ppp, correction = "Ripley")
@@ -572,7 +572,15 @@ plot(L_ck, . -r ~ r,
      ylab= "L(d)-r", xlab = "d(m)")
 ```
 
+-   edge correction via the correction attribute is Lest() is to take care of the modified edge defect
+-   in the algorithm, the boundary is extended slightly, so that we can include the points at the edge
+-   anything above red line is clustering
+-   anything below red line is regular pattern
+-   but we don't know if the clustering or regular pattern is statistically confident
+-   to draw the conclusion, we need the envelope to run simulations
+
 ### 5.10.1.2 Performing Complete Spatial Randomness Test
+
 To confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:
 
 Ho = The distribution of childcare services at Choa Chu Kang are randomly distributed.
@@ -591,8 +599,29 @@ L_ck.csr <- envelope(childcare_ck_ppp, Lest, nsim = 99, rank = 1, glocal=TRUE)
 plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
 
+-   altho the envelope looks like a grey area, it is actualy made up of lines
+
+-   the envelope is made up of 100 grey lines since 99 simulations are run
+
+-   to use 95% confidence interval, need to run 49 simulations
+
+-   for 99% confidence interval, run 99 simulations
+
+-   for 99.9% confidence interval, run 999 simulations
+
+-   conclusion: don't have enough statistical evidence to reject null, fail to reject the null hypothesis at 99% confidence interval bc they are not all outside the envelope
+
+-   anything that fall inside envelope, cannot reject null, outside then have enough stats evidence to reject the null
+
+-   Conclusion: null hypothesis says that the childcare centres are randomly distributed \> but from the graph, there is a portion where the black line is in the white area \> this means that at a certain distance, the childcare centres are clustered \> if the whole black line is OUTSIDE the envelope, it will mean that the childcare centres are clustered. if the whole black lines is INSIDE the envelope, it will mean that the childcare centres are randomly distributed. \> unless the whole black line is outside, we cannot reject the null hypothesis (cannot say that it is not randomly distributed). only if the whole black line is outside, we can say it is clustered and we can accept H1 that it is not random, then reject H0
+
+-   at about 480km between childcare centres, the childcare centres show since of clustering (white area)
+
+-   black line is alpha value, black lines protrude means p-value is smaller than alpha value
+
 ## 5.10.2 Tampines planning area
-### 5.10.2.1 Computing L-fucntion estimate
+
+### 5.10.2.1 Computing L-function estimate
 
 ```{r}
 L_tm = Lest(childcare_tm_ppp, correction = "Ripley")
@@ -602,6 +631,7 @@ plot(L_tm, . -r ~ r,
 ```
 
 ### 5.10.2.2 Performing Complete Spatial Randomness Test
+
 To confirm the observed spatial patterns above, a hypothesis test will be conducted. The hypothesis and test are as follows:
 
 Ho = The distribution of childcare services at Tampines are randomly distributed.
@@ -622,4 +652,3 @@ Then, plot the model output by using the code chunk below.
 plot(L_tm.csr, . - r ~ r, 
      xlab="d", ylab="L(d)-r", xlim=c(0,500))
 ```
-

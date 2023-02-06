@@ -68,7 +68,7 @@ mpsz_sf <- st_read(dsn = "data",
                 layer = "MP14_SUBZONE_WEB_PL")
 ```
 
-### 1.4.2 Mapping the geospatial data sets
+## 1.4.2 Mapping the geospatial data sets
 
 ```{r}
 sf_use_s2(FALSE)
@@ -161,3 +161,96 @@ summary(childcare_ppp)
 ```
 
 Notice the warning message about duplicates. In spatial point patterns analysis an issue of significant is the presence of duplicates. The statistical methodology used for spatial point patterns processes is based largely on the assumption that process are simple, that is, that the points cannot be coincident.
+
+
+## 1.5.4 Handling duplicated points
+
+We can check the duplication in a **ppp** object by using the code chunk below.
+
+```{r}
+any(duplicated(childcare_ppp))
+```
+
+To count the number of co-indicence point, we will use the multiplicity() function as shown in the code chunk below.
+
+```{r}
+multiplicity(childcare_ppp)
+```
+
+If we want to know how many locations have more than one point event, we can use the code chunk below.
+
+```{r}
+sum(multiplicity(childcare_ppp) > 1)
+```
+
+The output shows that there are 128 duplicated point events.
+
+To view the locations of these duplicate point events, we will plot `childcare` data by using the code chunk below.
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare) +
+  tm_dots(alpha=0.4,
+          size=0.05)
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+There are three ways to overcome this problem. The easiest way is to delete the duplicates. But, that will also mean that some useful point events will be lost.
+
+The second solution is use *jittering*, which will add a small perturbation to the duplicate points so that they do not occupy the exact same space.
+
+The third solution is to make each point "unique" and then attach the duplicates of the points to the patterns as **marks**, as attributes of the points. Then you would need analytical techniques that take into account these marks.
+
+The code chunk below implements the jittering approach.
+
+```{r}
+childcare_ppp_jit <- rjitter(childcare_ppp,
+                             retry=TRUE,
+                             nsim=1,
+                             drop=TRUE)
+```
+
+Check if any duplicated point is in this geospatial data
+
+```{r}
+any(duplicated(childcare_ppp_jit))
+```
+
+## 1.5.5 Creating *owin* object
+
+When analysing spatial point patterns, it is a good practice to confine the analysis with a geographical area like Singapore boundary. In **spatstat**, an object called ***owin*** is specially designed to represent this polygonal region.
+
+The code chunk below is used to covert *sg* SpatialPolygon object into owin object of **spatstat**.
+
+```{r}
+sg_owin <- as(sg_sp, "owin")
+```
+
+The ouput object can be displayed by using *plot()* function
+
+```{r}
+plot(sg_owin)
+```
+
+and *summary()* function of Base R
+
+```{r}
+summary(sg_owin)
+```
+
+## 1.5.6 Combining point events object and owin object
+
+In this last step of geospatial data wrangling, we will extract childcare events that are located within Singapore by using the code chunk below.
+
+```{r}
+childcareSG_ppp = childcare_ppp[sg_owin]
+```
+
+The output object combined both the point and polygon feature in one ppp object class as shown below.
+
+```{r}
+summary(childcareSG_ppp)
+```

@@ -618,6 +618,7 @@ plot(G_WP, xlim=c(0,500))
 To confirm the observed spatial patterns above, the hypothesis test will be conducted.
 
 Monte Carlo test with G-function:
+
 ```{r}
 G_WP.csr <- envelope(WPNGA_ppp, Gest, nsim = 999)
 ```
@@ -626,12 +627,9 @@ G_WP.csr <- envelope(WPNGA_ppp, Gest, nsim = 999)
 plot(G_WP.csr)
 ```
 
-
 ### With reference to the analysis results, draw statistical conclusions.
 
-Conclusion:
-Since the observed G(r) is far above G(theo) and the envelope, it shows that the water points in Osun, Nigeria are clustered. Hence, we reject the null hypothesis that the distribution of water points in Osun, Nigeria is randomly distributed at 95% confidence level.
-
+Conclusion: Since the observed G(r) is far above G(theo) and the envelope, it shows that the water points in Osun, Nigeria are clustered. Hence, we reject the null hypothesis that the distribution of water points in Osun, Nigeria is randomly distributed at 95% confidence level.
 
 ## Spatial Correlation Analysis
 

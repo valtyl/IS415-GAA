@@ -125,7 +125,6 @@ Notice that at the interactive mode, **tmap** is using [**leaflet for R**](https
 
 > Reminder: Always remember to switch back to plot mode after the interactive map. This is because, each interactive mode will consume a connection. You should also avoid displaying ecessive numbers of interactive maps (i.e. not more than 10) in one RMarkdown document when publish on Netlify.
 
-
 -   alpha controls the intensity of the colour, if the value is closer to 1, the colour will be darker. if the value is closer to 0, the colour will be brighter
 -   tm_dots(): usually used if we don't assign any value to the dots
 -   tm_bubbles(): usually used if we want to create proportional bubbles
@@ -214,6 +213,8 @@ We can check the duplication in a **ppp** object by using the code chunk below.
 any(duplicated(childcare_ppp))
 ```
 
+-   usually SG don't use GPS for points so there are duplicate points. SG uses postal codes and the postal codes are geocoded. SG uses the online geocoding function to retrieve the xy coordinates.
+
 To count the number of co-indicence point, we will use the multiplicity() function as shown in the code chunk below.
 
 ```{r}
@@ -256,6 +257,8 @@ childcare_ppp_jit <- rjitter(childcare_ppp,
                              drop=TRUE)
 ```
 
+-   jittering means that you differentiate the duplicate points with a bit of distance to make them different
+
 Check if any duplicated point is in this geospatial data
 
 ```{r}
@@ -294,11 +297,17 @@ childcareSG_ppp = childcare_ppp[sg_owin]
 
 The output object combined both the point and polygon feature in one ppp object class as shown below.
 
+-   owin layer helps to confine the boundary to use only those points in the owin map
+
 ```{r}
 summary(childcareSG_ppp)
 ```
 
 ### \[DIY\] Plot the newly derived childcareSG_ppp
+
+```{r}
+plot(childcareSG_ppp)
+```
 
 # 4.6 First-order Spatial Point Patterns Analysis
 
@@ -345,6 +354,9 @@ bw
 
 In the code chunk below, *rescale()* is used to covert the unit of measurement from meter to kilometer.
 
+-   SVY21 uses meter which makes the map units too small to see so we want to convert to km
+-   write on the map: unit per meter square CHANGED TO unit per kilometer square
+
 ```{r}
 childcareSG_ppp.km <- rescale(childcareSG_ppp, 1000, "km")
 ```
@@ -383,6 +395,11 @@ bw.diggle(childcareSG_ppp.km)
 Baddeley et. (2016) suggested the use of the *bw.ppl()* algorithm because in ther experience it tends to produce the more appropriate values when the pattern consists predominantly of tight clusters. But they also insist that if the purpose of once study is to detect a single tight cluster in the midst of random noise then the *bw.diggle()* method seems to work best.
 
 The code chunk beow will be used to compare the output of using *bw.diggle* and *bw.ppl* methods.
+
+-   ppl method appears to be smoother since the sigma is greater by 100m compared to the diggle method which seems more pixelised
+-   if you choose a method like diggle, choose the same method again. eg. use diggle for comparing both functional water points and non-functional water points
+-   location - well distributed, no difference in distribution patterns \>\> use fixed distance
+-   location - many residential areas, all the childcare centres will be cluttered \>\> use adaptive cause the kernel changes
 
 ```{r}
 kde_childcareSG.ppl <- density(childcareSG_ppp.km,
@@ -439,7 +456,9 @@ plot(kde_childcareSG_600)
 
 Fixed bandwidth method is very sensitive to highly skew distribution of spatial point patterns over geographical units for example urban versus rural. One way to overcome this problem is by using adaptive bandwidth instead.
 
-In this section, you will learn how to derive adaptive kernel density estimation by using [*density.adaptive()*](https://rdrr.io/cran/spatstat/man/adaptive.density.html) of **spatstat**.
+In this section, you will learn how to derive adaptive kernel density estimation by using [*density.adaptive()*](https://www.rdocumentation.org/packages/spatstat/versions/1.64-1/topics/adaptive.density) of **spatstat**.
+
+-   density.adaptive() has attributes `densityVoronoi` (tends to be more pixelised) and `densityAdaptiveKernel` (tends to be smoother)
 
 ```{r}
 kde_childcareSG_adaptive <- adaptive.density(childcareSG_ppp.km, method="kernel")
@@ -458,6 +477,8 @@ plot(kde_childcareSG_adaptive, main = "Adaptive bandwidth")
 
 The result is the same, we just convert it so that it is suitable for mapping purposes
 
+-   we need to convert to grid object (squarish pixels) because previously the output was an image that does not have coordinates
+
 ```{r}
 gridded_kde_childcareSG_bw <- as.SpatialGridDataFrame.im(kde_childcareSG.bw)
 spplot(gridded_kde_childcareSG_bw)
@@ -466,6 +487,8 @@ spplot(gridded_kde_childcareSG_bw)
 ### 4.7.3.1 Converting gridded output into raster
 
 Next, we will convert the gridded kernal density objects into RasterLayer object by using *raster()* of **raster** package.
+
+-   raster is specially designed to deal with grid outputs
 
 ```{r}
 kde_childcareSG_bw_raster <- raster(gridded_kde_childcareSG_bw)
@@ -560,7 +583,7 @@ childcare_ck_ppp = childcare_ppp_jit[ck_owin]
 childcare_jw_ppp = childcare_ppp_jit[jw_owin]
 ```
 
-Next, *rescale()* function is used to trasnform the unit of measurement from metre to kilometre.
+Next, *rescale()* function is used to transform the unit of measurement from metre to kilometre.
 
 ```{r}
 childcare_pg_ppp.km = rescale(childcare_pg_ppp, 1000, "km")
