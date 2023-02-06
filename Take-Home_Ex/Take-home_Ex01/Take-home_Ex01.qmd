@@ -49,7 +49,7 @@ This study will focus of Osun State, Nigeria. The state boundary GIS data of Nig
 To install the R packages:
 
 ```{r}
-pacman::p_load(tidyverse, sf, spatstat, raster, maptools, tmap, funModeling)
+pacman::p_load(tidyverse, sf, spatstat, raster, maptools, tmap, funModeling, sfdep)
 ```
 
 ## Importing the Data
@@ -407,6 +407,24 @@ Plot PPP object (combined point and polygon features) for non-functional water p
 plot(wp_nonfunctional_NGA_ppp)
 ```
 
+#### Displaying functional and non-functional water points
+
+With original data's categories:
+
+```{r}
+sf_use_s2(FALSE)
+tmap_mode('view')
+tm_shape(wp_sf_nga) +
+  tm_dots(col = "status_clean",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
 ### Derive kernel density maps of functional and non-functional water points
 
 #### For functional water points
@@ -608,23 +626,29 @@ With reference to the spatial point patterns observed in ESDA:
 
 ### Perform the test by using appropriate Second order spatial point patterns analysis technique.
 
-The G function, `Gest()`, measures the distribution of the distances from an arbitrary event to its nearest event. To do monte carlo simulation test, `envelope()` will be used.
+The L function, `Lest()`, is a descriptive statistics generally used to determine whether points have a random, dispersed or clustered distribution pattern at certain scale. To do monte carlo simulation test, `envelope()` will be used.
 
 ```{r}
-G_WP = Gest(WPNGA_ppp, correction = "border")
-plot(G_WP, xlim=c(0,500))
+#| eval: false
+L_WP = Lest(WPNGA_ppp, correction = "Ripley")
+plot(L_WP, . -r ~ r,
+     ylab= "L(d)-r", xlab = "d(m)")
 ```
+
+This is an image of the output of the above code as it takes too long to run:
+
+![](images/GAA%20L_WP-01.png)
 
 To confirm the observed spatial patterns above, the hypothesis test will be conducted.
 
-Monte Carlo test with G-function:
+Monte Carlo test with L-function:
 
 ```{r}
-G_WP.csr <- envelope(WPNGA_ppp, Gest, nsim = 999)
+# L_WP.csr <- envelope(WPNGA_ppp, Lest, nsim = 49)
 ```
 
 ```{r}
-plot(G_WP.csr)
+# plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
 
 ### With reference to the analysis results, draw statistical conclusions.
@@ -644,5 +668,56 @@ In this section, you are required to confirm statistically if the spatial distri
 -   The null hypothesis will be rejected if p-value is smaller than the alpha value of 0.05
 
 ### Perform the test by using appropriate Second order spatial point patterns analysis technique.
+
+```{r}
+new_wp_sf <- subset(wp_sf, select=c("#lat_deg", "#lon_deg", "#status_clean"))
+```
+
+
+```{r}
+nb <- include_self(
+  st_knn(st_geometry(new_wp_sf), 6)
+)
+```
+
+```{r}
+wt <- st_kernel_weights(nb,
+                        new_wp_sf,
+                        "gaussian",
+                        adaptive = TRUE)
+```
+
+```{r}
+A <- wp_functional$status_clean
+```
+
+```{r}
+B <-wp_nonfunctional$status_clean
+```
+
+
+```{r}
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+```{r}
+LCLQ_WP <- cbind(new_wp_sf, LCLQ)
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(NGA) +
+  tm_polygons() +
+  tm_shape(LCLQ_WP) +
+  tm_dots(col = "X.status_clean",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5)
+```
+
+```{r}
+tmap_mode("plot")
+```
+
 
 ### With reference to the analysis results, draw statistical conclusions.
