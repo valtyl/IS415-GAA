@@ -74,12 +74,19 @@ mpsz_sf <- st_read(dsn = "data",
 sf_use_s2(FALSE)
 tmap_mode('view')
 tm_shape(childcare_sf)+
-  tm_dots()
+  tm_dots(alpha = 0.5, size=0.01)+
+  tm_view(set.zoom.limits = c(11,14))
 ```
 
 ```{r}
 tmap_mode('plot')
 ```
+
+-   alpha controls the intensity of the colour, if the value is closer to 1, the colour will be darker. if the value is closer to 0, the colour will be brighter
+-   [tm_dots()](https://r-tmap.github.io/tmap/reference/tm_symbols.html): usually used if we don't assign any value to the dots
+-   [tm_bubbles()](https://r-tmap.github.io/tmap/reference/tm_symbols.html): usually used if we want to create proportional bubbles
+-   set.zoom.limits in [tm_view()](https://r-tmap.github.io/tmap/reference/tm_view.html): to prevent too far zooming in and out
+-   set.bounds in [tm_view()](https://r-tmap.github.io/tmap/reference/tm_view.html): set boundaries of the map to prevent it from 'running away'
 
 # 1.5 Geospatial Data Wrangling
 

@@ -113,7 +113,8 @@ Alternatively, we can also prepare a pin map by using the code chunk below.
 sf_use_s2(FALSE)
 tmap_mode('view')
 tm_shape(childcare_sf)+
-  tm_dots()
+  tm_dots(alpha = 0.5, size=0.01)+
+  tm_view(set.zoom.limits = c(11,14))
 ```
 
 ```{r}
@@ -123,6 +124,13 @@ tmap_mode('plot')
 Notice that at the interactive mode, **tmap** is using [**leaflet for R**](https://rstudio.github.io/leaflet/) API. The advantage of this interactive pin map is it allows us to navigate and zoom around the map freely. We can also query the information of each simple feature (i.e. the point) by clicking of them. Last but not least, you can also change the background of the internet map layer. Currently, three internet map layers are provided. They are: ESRI.WorldGrayCanvas, OpenStreetMap, and ESRI.WorldTopoMap. The default is ESRI.WorldGrayCanvas.
 
 > Reminder: Always remember to switch back to plot mode after the interactive map. This is because, each interactive mode will consume a connection. You should also avoid displaying ecessive numbers of interactive maps (i.e. not more than 10) in one RMarkdown document when publish on Netlify.
+
+
+-   alpha controls the intensity of the colour, if the value is closer to 1, the colour will be darker. if the value is closer to 0, the colour will be brighter
+-   tm_dots(): usually used if we don't assign any value to the dots
+-   tm_bubbles(): usually used if we want to create proportional bubbles
+-   set.zoom.limits in tm_view(): to prevent too far zooming in and out
+-   set.bounds in tm_view(): set boundaries of the map to prevent it from 'running away'
 
 # 4.5 Geospatial Data Wrangling
 

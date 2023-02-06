@@ -1,0 +1,15 @@
+---
+title: "In-class Exercise 5: 2nd Order Spatial Point Patterns Analysis Methods"
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "6 February 2023"
+date-modified: "`r Sys.Date()`"
+# number-sections: true
+editor: visual
+format: html
+---
+
+# 1.1 Overview
