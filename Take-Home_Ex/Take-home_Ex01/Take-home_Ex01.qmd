@@ -10,6 +10,7 @@ date-modified: "`r Sys.Date()`"
 number-sections: true
 editor: visual
 format: html
+author: Valencia
 ---
 
 # Setting the Scene
@@ -152,7 +153,7 @@ Rename '#status_clean' to 'status_clean' and replace NA values under 'status_cle
 ```{r}
 wp_sf_nga <- wp_sf %>% 
   rename(status_clean = '#status_clean') %>%
-  dplyr::select(status_clean) %>%
+  dplyr::select(status_clean, row_id) %>%
   mutate(status_clean = replace_na(
     status_clean, "unknown"))
 ```
@@ -418,12 +419,42 @@ tm_shape(wp_sf_nga) +
   tm_dots(col = "status_clean",
           size = 0.01,
           border.col = "black",
-          border.lwd = 0.5)
+          border.lwd = 0.5) + 
+  tm_view(set.zoom.limits = c(8,14))
 ```
 
 ```{r}
 tmap_mode("plot")
 ```
+
+Making a more generic category:
+```{r}
+wp_sf_nga <- wp_sf_nga %>% mutate(Category = 
+                       case_when(status_clean == "Abandoned/Decommissioned" ~ "Non-Functional",
+                                 status_clean == "Abandoned" ~ "Non-Functional",
+                                 status_clean == "Non-Functional due to dry season" ~ "Non-Functional",
+                                 status_clean == "Non-Functional" ~ "Non-Functional", 
+                                 status_clean == "Functional" ~ "Functional",
+                                 status_clean == "Functional but not in use" ~ "Functional",
+                                 status_clean == "Functional but needs repair" ~ "Functional",
+                                 status_clean == "unknown" ~ "Unknown"))
+```
+
+
+Plot of functional and non-functional water points with new category:
+```{r}
+sf_use_s2(FALSE)
+tmap_mode('view')
+tm_shape(wp_sf_nga) +
+  tm_dots(col = "Category",
+          size = 0.01) + 
+  tm_view(set.zoom.limits = c(8,14))
+```
+
+```{r}
+tmap_mode("plot")
+```
+
 
 ### Derive kernel density maps of functional and non-functional water points
 
@@ -644,16 +675,26 @@ To confirm the observed spatial patterns above, the hypothesis test will be cond
 Monte Carlo test with L-function:
 
 ```{r}
-# L_WP.csr <- envelope(WPNGA_ppp, Lest, nsim = 49)
+#| eval: false
+L_WP.csr <- envelope(WPNGA_ppp, Lest, nsim = 49)
 ```
 
+This is an image of the output of the above code as it takes too long to run:
+
+![](images/GAA%20L_49sims.png)
+
 ```{r}
-# plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+#| eval: false
+plot(L_WP.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
 ```
+
+This is an image of the output of the above code as it takes too long to run:
+
+![](images/GAA%20L_WP_csr.png)
 
 ### With reference to the analysis results, draw statistical conclusions.
 
-Conclusion: Since the observed G(r) is far above G(theo) and the envelope, it shows that the water points in Osun, Nigeria are clustered. Hence, we reject the null hypothesis that the distribution of water points in Osun, Nigeria is randomly distributed at 95% confidence level.
+Conclusion: Since the observed L(r) is far above L(theo) and the envelope, it shows that the water points in Osun, Nigeria are clustered. We have enough statistical evidence at 95% confidence level to reject the null hypothesis. Hence, we reject the null hypothesis that the distribution of water points in Osun, Nigeria is randomly distributed at 95% confidence level.
 
 ## Spatial Correlation Analysis
 
@@ -661,63 +702,112 @@ In this section, you are required to confirm statistically if the spatial distri
 
 ### Formulate the null hypothesis and alternative hypothesis and select the confidence level.
 
--   H0: The distribution of functional and non-functional water points in Osun State, Nigeria are independent from each other
--   H1: The distribution of functional and non-functional water points in Osun State, Nigeria is are not independent from each other
+-   H0: The distribution of functional and non-functional water points in Osun State, Nigeria is independent from each other
+-   H1: The distribution of functional and non-functional water points in Osun State, Nigeria is not independent from each other
 -   Confidence Level: 95%
 -   Significance Level: 0.05
 -   The null hypothesis will be rejected if p-value is smaller than the alpha value of 0.05
 
 ### Perform the test by using appropriate Second order spatial point patterns analysis technique.
 
+Getting the sf dataframe for functional and non-functional water points only: 
 ```{r}
-new_wp_sf <- subset(wp_sf, select=c("#lat_deg", "#lon_deg", "#status_clean"))
+new_wp_sf <- subset(wp_sf_nga, select=c("row_id", "Category"))
+new_wp_sf <- filter(new_wp_sf, Category %in% c("Functional", "Non-Functional"))
 ```
 
-
+Preparing nearest neighbours list with `st_knn()`, nearest 6 neighbours for a given point geometry:
 ```{r}
-nb <- include_self(
+nb_wp <- include_self(
   st_knn(st_geometry(new_wp_sf), 6)
 )
 ```
 
+Computing kernel weights with `st_kernel_weights()`, deriving a weights list using a kernel function:
 ```{r}
-wt <- st_kernel_weights(nb,
+wt_wp <- st_kernel_weights(nb_wp,
                         new_wp_sf,
                         "gaussian",
                         adaptive = TRUE)
 ```
 
+Character list for Functional water points:
 ```{r}
-A <- wp_functional$status_clean
+Functional <- new_wp_sf %>% filter(Category == "Functional")
+A_wp <- Functional$Category
 ```
 
+Character list for Non-Functional water points:
 ```{r}
-B <-wp_nonfunctional$status_clean
+NonFunctional <- new_wp_sf %>% filter(Category == "Non-Functional")
+B_wp <- NonFunctional$Category
 ```
 
-
+Computing Local Colocation Quotient values for each Functional water point event using the character lists, neighbours list and kernel weights with a simulation of 49 for 95% confidence level:
 ```{r}
-LCLQ <- local_colocation(A, B, nb, wt, 49)
+LCLQn <- local_colocation(A_wp, B_wp, nb_wp, wt_wp, 49)
 ```
 
+Joining the output of `local_colocation()` to the sf dataframe of functional and non-functional water points using `cbind()`:
 ```{r}
-LCLQ_WP <- cbind(new_wp_sf, LCLQ)
+LCLQ_WP <- cbind(new_wp_sf, LCLQn)
 ```
 
+Plotting LCLQ values:
 ```{r}
 tmap_mode("view")
 tm_shape(NGA) +
   tm_polygons() +
   tm_shape(LCLQ_WP) +
-  tm_dots(col = "X.status_clean",
+  tm_dots(col = "Non.Functional",
           size = 0.01,
           border.col = "black",
-          border.lwd = 0.5)
+          border.lwd = 0.5) + 
+  tm_view(set.zoom.limits = c(8,14))
 ```
 
+
+Plotting LCLQ p-values:
+```{r}
+tmap_mode("view")
+tm_shape(NGA) +
+  tm_polygons() +
+  tm_shape(LCLQ_WP) +
+  tm_dots(col = "p_sim_Non.Functional",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5) + 
+  tm_view(set.zoom.limits = c(8,14))
+```
+
+
+Plotting LCLQ p-values with custom legend:
+```{r}
+tmap_mode("view")
+tm_shape(NGA) +
+  tm_polygons() +
+  tm_shape(LCLQ_WP) +
+  tm_dots(col = "p_sim_Non.Functional",
+          size = 0.01,
+          border.col = "black",
+          border.lwd = 0.5,
+          breaks = c(0, 0.05, 0.1)) + 
+  tm_view(set.zoom.limits = c(8,14))
+```
+
+Changing back to plot mode:
 ```{r}
 tmap_mode("plot")
 ```
 
 
 ### With reference to the analysis results, draw statistical conclusions.
+Conclusion:
+Features of the Category of Interest (Functional water points) have a colocation quotient equal to one when rounded off to 3 significant figures. This means that the proportion of features of the Neighbouring Category (Non-Functional water points) within their neighbourhood is a good representation of the proportion of categories throughout the study area. The proportion of Functional and Non-Functional water points are more or less the same.
+
+
+There are quite a few yellow points in the plot above which shows that the p-value is less than 0.05. For these points, the actual colocation quotient for the feature is statistically significant. However, for the brown points in the plot above, where the p-value is more than 0.05, the actual colocation quotient for the feature is not statistically significant.
+
+
+At 95% confidence level, there is not enough statistical evidence to reject the null hypothesis as the p-value is not less than 0.05 for all features of interest. Hence, the distribution of functional and non-functional water points in Osun State, Nigeria are independent from each other.
+
