@@ -46,6 +46,7 @@ This study will focus of Osun State, Nigeria. The state boundary GIS data of Nig
 -   [maptools](https://cran.r-project.org/web/packages/maptools/): a set of tools for manipulating geographic data
 -   [tmap](https://cran.r-project.org/web/packages/tmap/): provides functions for plotting cartographic quality static point patterns maps or interactive maps
 -   [funModeling](https://cran.r-project.org/web/packages/funModeling/index.html): for visualisations
+-   [sfdep](https://cran.r-project.org/web/packages/sfdep/index.html): for spatial dependence of simple features
 
 To install the R packages:
 
@@ -164,7 +165,7 @@ This section is for **all** water points, including functional and non-functiona
 
 ### Converting sf data frames to sp's Spatial\* class
 
-Convert using `as_Spatial()` of sf package:
+Convert from sf dataframe to sp's Spatial class using `as_Spatial()` of sf package:
 
 ```{r}
 NGA_spatial <- as_Spatial(NGA)
@@ -204,7 +205,7 @@ wp_sp
 
 ### Converting the generic sp format into spatstat's ppp format
 
-Convert using `as.ppp()` of spatstat:
+Convert from generic sp format to spatstat's ppp object using `as.ppp()` of spatstat:
 
 ```{r}
 wp_ppp <- as(wp_sp, "ppp")
@@ -231,7 +232,7 @@ any(duplicated(wp_ppp))
 
 There are no duplicate point events
 
-### Plot WP point events
+### Plot all water point point events
 
 ```{r}
 sf_use_s2(FALSE)
@@ -293,7 +294,7 @@ plot(WPNGA_ppp)
 
 ### Geospatial Data Wrangling for functional and non-functional water points separately
 
-Extract **functional** water points:
+Extract **functional** water points using `filter()`:
 
 ```{r}
 wp_functional <- wp_sf_nga %>%
@@ -307,7 +308,7 @@ wp_functional <- wp_sf_nga %>%
 wp_functional
 ```
 
-Extract **non-functional** water points:
+Extract **non-functional** water points using `filter()`:
 
 ```{r}
 wp_nonfunctional <- wp_sf_nga %>%
@@ -356,7 +357,7 @@ wp_functional_ppp <- as(wp_functional_sp, "ppp")
 wp_nonfunctional_ppp <- as(wp_nonfunctional_sp, "ppp")
 ```
 
-PPP object for functional water points:
+Plot and Summary of PPP object for **functional** water points:
 
 ```{r}
 plot(wp_functional_ppp)
@@ -366,7 +367,7 @@ plot(wp_functional_ppp)
 summary(wp_functional_ppp)
 ```
 
-PPP object for non-functional water points:
+Plot and Summary of PPP object for **non-functional** water points:
 
 ```{r}
 plot(wp_nonfunctional_ppp)
@@ -378,7 +379,7 @@ summary(wp_nonfunctional_ppp)
 
 #### Combining point events object and owin object:
 
-Previously, the check for duplicate point events has been done as well as the creation of the NGA owin object.
+Previously, the check for duplicate point events has been done as well as the creation of the NGA owin object hence we do not need to repeat in this section.
 
 ```{r}
 wp_functional_NGA_ppp = wp_functional_ppp[NGA_owin]
@@ -388,7 +389,7 @@ wp_functional_NGA_ppp = wp_functional_ppp[NGA_owin]
 summary(wp_functional_NGA_ppp)
 ```
 
-Plot PPP object (combined point and polygon features) for functional water points:
+Plot PPP object (combined point and polygon features) for **functional** water points:
 
 ```{r}
 plot(wp_functional_NGA_ppp)
@@ -402,13 +403,13 @@ wp_nonfunctional_NGA_ppp = wp_nonfunctional_ppp[NGA_owin]
 summary(wp_nonfunctional_NGA_ppp)
 ```
 
-Plot PPP object (combined point and polygon features) for non-functional water points:
+Plot PPP object (combined point and polygon features) for **non-functional** water points:
 
 ```{r}
 plot(wp_nonfunctional_NGA_ppp)
 ```
 
-#### Displaying functional and non-functional water points
+#### Displaying functional and non-functional water points together with different colours
 
 With original data's categories:
 
@@ -428,6 +429,7 @@ tmap_mode("plot")
 ```
 
 Making a more generic category:
+
 ```{r}
 wp_sf_nga <- wp_sf_nga %>% mutate(Category = 
                        case_when(status_clean == "Abandoned/Decommissioned" ~ "Non-Functional",
@@ -440,8 +442,8 @@ wp_sf_nga <- wp_sf_nga %>% mutate(Category =
                                  status_clean == "unknown" ~ "Unknown"))
 ```
 
-
 Plot of functional and non-functional water points with new category:
+
 ```{r}
 sf_use_s2(FALSE)
 tmap_mode('view')
@@ -454,7 +456,6 @@ tm_shape(wp_sf_nga) +
 ```{r}
 tmap_mode("plot")
 ```
-
 
 ### Derive kernel density maps of functional and non-functional water points
 
@@ -477,7 +478,7 @@ Plot kernel density map:
 plot(kde_wp_functional_NGA_bw)
 ```
 
-Rescaling KDE values to kilometers:
+Rescaling KDE values to kilometers as the scale was very small:
 
 ```{r}
 wp_functional_NGA_ppp.km <- rescale(wp_functional_NGA_ppp, 1000, "km")
@@ -534,7 +535,7 @@ Plot kernel density map:
 plot(kde_wp_nonfunctional_NGA_bw)
 ```
 
-Rescaling KDE values to kilometers:
+Rescaling KDE values to kilometers as the scale was very small:
 
 ```{r}
 wp_nonfunctional_NGA_ppp.km <- rescale(wp_nonfunctional_NGA_ppp, 1000, "km")
@@ -610,7 +611,7 @@ tm_basemap("OpenStreetMap") +
 
 Kernel density map makes it easier for the user to notice the concentration and clusters at one glance compared to a point map. For point maps, a longer time would be needed to compare the difference between the distributions in different areas.
 
-Point Map of functional water points:
+Point Map of **functional** water points:
 
 ```{r}
 tmap_mode("plot")
@@ -626,7 +627,7 @@ tm_shape(wp_functional) +
 
 To find out where the higher concentrations are, we would have to particularly look at the distance between the points which is hard to note.
 
-Kernel Density Map of functional water points:
+Kernel Density Map of **functional** water points:
 
 ```{r}
 tm_basemap("OpenStreetMap") +
@@ -710,13 +711,15 @@ In this section, you are required to confirm statistically if the spatial distri
 
 ### Perform the test by using appropriate Second order spatial point patterns analysis technique.
 
-Getting the sf dataframe for functional and non-functional water points only: 
+Getting the sf dataframe for functional and non-functional water points only:
+
 ```{r}
 new_wp_sf <- subset(wp_sf_nga, select=c("row_id", "Category"))
 new_wp_sf <- filter(new_wp_sf, Category %in% c("Functional", "Non-Functional"))
 ```
 
 Preparing nearest neighbours list with `st_knn()`, nearest 6 neighbours for a given point geometry:
+
 ```{r}
 nb_wp <- include_self(
   st_knn(st_geometry(new_wp_sf), 6)
@@ -724,6 +727,7 @@ nb_wp <- include_self(
 ```
 
 Computing kernel weights with `st_kernel_weights()`, deriving a weights list using a kernel function:
+
 ```{r}
 wt_wp <- st_kernel_weights(nb_wp,
                         new_wp_sf,
@@ -732,28 +736,33 @@ wt_wp <- st_kernel_weights(nb_wp,
 ```
 
 Character list for Functional water points:
+
 ```{r}
 Functional <- new_wp_sf %>% filter(Category == "Functional")
 A_wp <- Functional$Category
 ```
 
 Character list for Non-Functional water points:
+
 ```{r}
 NonFunctional <- new_wp_sf %>% filter(Category == "Non-Functional")
 B_wp <- NonFunctional$Category
 ```
 
 Computing Local Colocation Quotient values for each Functional water point event using the character lists, neighbours list and kernel weights with a simulation of 49 for 95% confidence level:
+
 ```{r}
 LCLQn <- local_colocation(A_wp, B_wp, nb_wp, wt_wp, 49)
 ```
 
 Joining the output of `local_colocation()` to the sf dataframe of functional and non-functional water points using `cbind()`:
+
 ```{r}
 LCLQ_WP <- cbind(new_wp_sf, LCLQn)
 ```
 
 Plotting LCLQ values:
+
 ```{r}
 tmap_mode("view")
 tm_shape(NGA) +
@@ -766,8 +775,8 @@ tm_shape(NGA) +
   tm_view(set.zoom.limits = c(8,14))
 ```
 
-
 Plotting LCLQ p-values:
+
 ```{r}
 tmap_mode("view")
 tm_shape(NGA) +
@@ -780,8 +789,8 @@ tm_shape(NGA) +
   tm_view(set.zoom.limits = c(8,14))
 ```
 
-
 Plotting LCLQ p-values with custom legend:
+
 ```{r}
 tmap_mode("view")
 tm_shape(NGA) +
@@ -796,18 +805,19 @@ tm_shape(NGA) +
 ```
 
 Changing back to plot mode:
+
 ```{r}
 tmap_mode("plot")
 ```
 
-
 ### With reference to the analysis results, draw statistical conclusions.
-Conclusion:
-Features of the Category of Interest (Functional water points) have a colocation quotient equal to one when rounded off to 3 significant figures. This means that the proportion of features of the Neighbouring Category (Non-Functional water points) within their neighbourhood is a good representation of the proportion of categories throughout the study area. The proportion of Functional and Non-Functional water points are more or less the same.
 
+Conclusion: Features of the Category of Interest (Functional water points) have a colocation quotient equal to one when rounded off to 3 significant figures. This means that the proportion of features of the Neighbouring Category (Non-Functional water points) within their neighbourhood is a good representation of the proportion of categories throughout the study area. The proportion of Functional and Non-Functional water points are more or less the same.
 
 There are quite a few yellow points in the plot above which shows that the p-value is less than 0.05. For these points, the actual colocation quotient for the feature is statistically significant. However, for the brown points in the plot above, where the p-value is more than 0.05, the actual colocation quotient for the feature is not statistically significant.
 
-
 At 95% confidence level, there is not enough statistical evidence to reject the null hypothesis as the p-value is not less than 0.05 for all features of interest. Hence, the distribution of functional and non-functional water points in Osun State, Nigeria are independent from each other.
 
+# Acknowledgements
+
+Thank you to Prof Kam for the course teachings and reference materials!
