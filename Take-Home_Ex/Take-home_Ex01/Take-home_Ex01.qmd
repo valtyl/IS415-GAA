@@ -677,12 +677,18 @@ Monte Carlo test with L-function:
 
 ```{r}
 #| eval: false
-L_WP.csr <- envelope(WPNGA_ppp, Lest, nsim = 49)
+L_WP.csr <- envelope(WPNGA_ppp, Lest, nsim = 39)
 ```
 
 This is an image of the output of the above code as it takes too long to run:
 
 ![](images/GAA%20L_49sims.png)
+
+::: callout-note
+## Note
+Note: I have noted that the number of simulations is supposed to be 39 simulations instead of 49 simulations (which is written in my output). My output says 49 simulations as I had already ran 49 simulations before I read the note on Piazza. As of now, 12 Feb 5pm, it will take too long for me to run 39 simulations as it took me 2 days to run 49 simulations. Kindly forgive me on this output :'(
+:::
+
 
 ```{r}
 #| eval: false
