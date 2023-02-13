@@ -1,0 +1,16 @@
+---
+title: "Take-home Exercise 2: Spatio-temporal Analysis of COVID-19 Vaccination Trends at the Sub-district Level, DKI Jakarta"
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "13 February 2023"
+date-modified: "`r Sys.Date()`"
+number-sections: true
+editor: visual
+format: html
+author: Valencia
+---
+
+
