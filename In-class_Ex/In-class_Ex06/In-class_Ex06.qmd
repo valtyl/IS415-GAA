@@ -1,0 +1,34 @@
+---
+title: "In-class Exercise 6: Spatial Weights and Applications"
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "13 February 2023"
+date-modified: "`r Sys.Date()`"
+# number-sections: true
+editor: visual
+format: html
+---
+
+# 1.1 Overview
+
+# 1.2 Getting Started
+
+## 1.2.1 Installing and Loading the R Packages
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse)
+```
+
+# 1.3 The Data
+
+# 1.4 Identify area neighbours
+
+# 1.5 K-Nearest neighbours method
+
+# 1.6 Distance band method
+
+# 1.7 Computing contiguity weights
+
+# 1.8 

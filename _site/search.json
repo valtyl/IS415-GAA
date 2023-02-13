@@ -747,5 +747,26 @@
     "title": "In-class Exercise 5: Advanced Spatial Point Patterns Analysis: Local Co-Location Quotient",
     "section": "1.4.2 Visualising the sf layers",
     "text": "1.4.2 Visualising the sf layers\n\ntmap_mode(\"view\")\ntm_shape(studyArea) +\n  tm_polygons() +\n  tm_shape(stores) +\n  tm_dots(col = \"Name\",\n          size = 0.01,\n          border.col = \"black\",\n          border.lwd = 0.5) +\n  tm_view(set.zoom.limits = c(12,16))\n\n\n\n\n\n\n\nalways plot polygons FIRST then points"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html",
+    "href": "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html",
+    "title": "Hands-on Exercise 6: Analysing Marked Point Patterns",
+    "section": "",
+    "text": "6.1 Overview"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex06/In-class_Ex06.html",
+    "href": "In-class_Ex/In-class_Ex06/In-class_Ex06.html",
+    "title": "In-class Exercise 6: Analysing Marked Point Patterns",
+    "section": "",
+    "text": "1.1 Overview"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex06/In-class_Ex06.html#installing-and-loading-the-r-packages",
+    "href": "In-class_Ex/In-class_Ex06/In-class_Ex06.html#installing-and-loading-the-r-packages",
+    "title": "In-class Exercise 6: Spatial Weights and Applications",
+    "section": "1.2.1 Installing and Loading the R Packages",
+    "text": "1.2.1 Installing and Loading the R Packages\n\npacman::p_load(sf, sfdep, tmap, tidyverse)"
   }
 ]
