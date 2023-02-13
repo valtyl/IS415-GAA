@@ -14,9 +14,18 @@ format: html
 
 # 1.1 Overview
 
+In this in-class exercise, you will learn how to perform Local Colocation Quotient Analysis by using convenience store data of Taiwan as a use case.
+
 # 1.2 The data
 
 # 1.3 Installing and Loading the R packages
+
+For the purpose of this in-class exercise, four R packages will be used. They are:
+
+-   tidyverse for performing data science tasks,
+-   sf for importing, managing and processing geospatial data in simple feature data.frame,
+-   tmap for plotting cartographic quality maps, and
+-   sfdep for performing geospatia data wrangling and local colocation quotient analysis.
 
 ```{r}
 pacman::p_load(tidyverse, sf, sfdep, tmap)
@@ -24,7 +33,11 @@ pacman::p_load(tidyverse, sf, sfdep, tmap)
 
 # 1.4 Spatial Data Wrangling
 
+Two geospatial data will be used in this hands-on exercise. Both of them are in ESRI shapefile format.
+
 ## 1.4.1 Importing Spatial Data
+
+This is a polygon features data showing selected towns of Taipei city. The original data set is in geographic coordinate system and st_transform is used to the data set into projected coordinates system
 
 ```{r}
 studyArea <- st_read(dsn = "data", layer="study_area") %>% st_transform(crs = 3829)
@@ -32,6 +45,8 @@ studyArea <- st_read(dsn = "data", layer="study_area") %>% st_transform(crs = 38
 
 -   [3829](https://epsg.io/3829) is the projection system of taiwan
 -   taiwan has 2 projections, 1 locally taiwan (3829), 1 taiwan + china
+
+This is a point features data showing selected towns of Taipei city. The original data set is in geographic coordinate system and st_transform is used to the data set into projected coordinates system
 
 ```{r}
 stores <- st_read(dsn = "data", layer="stores") %>% st_transform(crs = 3829)
@@ -55,6 +70,10 @@ tm_shape(studyArea) +
 
 # 1.5 Local Colocation Quotients (LCLQ)
 
+## 1.5.1 Preparing nearest neighbours list
+
+In the code chunk below, [`st_knn()`](https://sfdep.josiahparry.com/reference/st_knn.html) of sfdep package is used to determine the k (i.e. 6) nearest neighbours for given point geometry.
+
 ```{r}
 nb <- include_self(
   st_knn(st_geometry(stores), 6)
@@ -64,6 +83,10 @@ nb <- include_self(
 -   nb: nearest neighbours list
 -   6: search for the 6 nearest neighbours (good to use even numbers when use `include_self`)
 -   `include_self`: so it will include myself and the neighbours (6+1)
+
+## **1.5.2 Computing kernel weights**
+
+In the code chunk below, [`st_kernel_weights()`](https://sfdep.josiahparry.com/reference/st_kernel_weights.html) of sfdep package is used to derive a weights list by using a kernel function.
 
 ```{r}
 wt <- st_kernel_weights(nb,
@@ -76,11 +99,16 @@ wt <- st_kernel_weights(nb,
 -   `st_kernel_weights`: convert into a weights matrix
 -   nearer get higher weights, further get lower weights
 
+## **1.5.3 Preparing the vector list**
+
+To compute LCLQ by using sfdep package, the reference point data must be in either character or vector list. The code chunks below are used to prepare two vector lists. One of Family Mart and for 7-11 and are called A and B respectively.
+
 ```{r}
 FamilyMart <- stores %>%
   filter(Name == "Family Mart")
 A <- FamilyMart$Name
 ```
+
 -   lat, long in the data is not important since we alr have the geometry column. lat, long can be dropped if want to
 
 ```{r}
@@ -88,6 +116,10 @@ SevenEleven <- stores %>%
   filter(Name == "7-Eleven")
 B <- SevenEleven$Name
 ```
+
+## 1.5.4 Computing LCLQ
+
+In the code chunk below [`local_colocation()`](https://sfdep.josiahparry.com/reference/local_colocation.html) us used to compute the LCLQ values for each Family Mart point event.
 
 ```{r}
 LCLQ <- local_colocation(A, B, nb, wt, 49)
@@ -99,16 +131,25 @@ LCLQ <- local_colocation(A, B, nb, wt, 49)
 -   wt: weights
 -   want to find out if target is colocated with the neighbour
 -   49: running 50 simulations
--   output (click LCLQ datatable): first col is whether there is a neighbour or not, second col is p-values. there are different levels of p-values. NA indicates that they cannot find useful indexes to work wtih
+-   output (click LCLQ datatable): first col is whether there is a neighbour or not, second col is p-values. there are different levels of p-values. NA indicates that they cannot find useful indexes to work with
+
+## 1.5.5 Joining output table
+
+Before we can plot the LCLQ values their p-values, we need to join the output of `local_colocation()` to the stores sf data.frame. However, a quick check of LCLQ data-frame, we can\'t find any field can be used as the join field. As a result, [`cbind()`](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/cbind) of Base R is used.
 
 ```{r}
 LCLQ_stores <- cbind(stores, LCLQ)
 ```
+
 -   total points is 1409
 -   563 (family mart) + 846 (7-11)
 -   `cbind()`: combining the stores and the local colocation quotient table (make sure the results of both are NOT SORTED before using `cbind()` else will append wrong info)
 -   cannot do relational join like left.join() or right.join() bc both dont have unique identifier
 -   cbind()'s first variable should be stores so that they will inherit the property of stores (which is geometry). they always inherit the property of the first variable
+
+## Plotting LCLQ values
+
+In the code chunk below, tmap functions are used to plot the LCLQ analysis.
 
 ```{r}
 tmap_mode("view")
