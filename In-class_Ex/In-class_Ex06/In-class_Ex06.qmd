@@ -98,8 +98,7 @@ cn_queen <- hunan_GDPPC %>%
 
 ```{r}
 cn_rook <- hunan_GDPPC %>%
-  mutate(nb = st_contiguity(geometry),
-         queen = FALSE,
+  mutate(nb = st_contiguity(geometry, queen = FALSE),
          .before = 1)
 ```
 
@@ -133,8 +132,7 @@ wm_q <- hunan_GDPPC %>%
 
 ```{r}
 wm_r <- hunan_GDPPC %>%
-  mutate(nb = st_contiguity(geometry),
-         queen = FALSE,
+  mutate(nb = st_contiguity(geometry, queen = FALSE),
          wt = st_weights(nb),
          .before = 1)
 ```
