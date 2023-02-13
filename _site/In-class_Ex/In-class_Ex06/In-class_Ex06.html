@@ -254,10 +254,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#combining-both-data-frame-by-using-left-join" id="toc-combining-both-data-frame-by-using-left-join" class="nav-link" data-scroll-target="#combining-both-data-frame-by-using-left-join">1.3.3 Combining both data frame by using left join</a></li>
   <li><a href="#plotting-a-choropleth-map" id="toc-plotting-a-choropleth-map" class="nav-link" data-scroll-target="#plotting-a-choropleth-map">1.3.4 Plotting a choropleth map</a></li>
   </ul></li>
-  <li><a href="#identify-area-neighbours" id="toc-identify-area-neighbours" class="nav-link" data-scroll-target="#identify-area-neighbours">1.4 Identify area neighbours</a></li>
+  <li><a href="#identify-area-neighbours" id="toc-identify-area-neighbours" class="nav-link" data-scroll-target="#identify-area-neighbours">1.4 Identify area neighbours</a>
+  <ul class="collapse">
+  <li><a href="#contiguity-neighbours-method" id="toc-contiguity-neighbours-method" class="nav-link" data-scroll-target="#contiguity-neighbours-method">1.4.1 Contiguity neighbours method</a>
+  <ul class="collapse">
+  <li><a href="#queens-method" id="toc-queens-method" class="nav-link" data-scroll-target="#queens-method">Queen’s method</a></li>
+  <li><a href="#rooks-method" id="toc-rooks-method" class="nav-link" data-scroll-target="#rooks-method">Rook’s method</a></li>
+  </ul></li>
+  </ul></li>
   <li><a href="#k-nearest-neighbours-method" id="toc-k-nearest-neighbours-method" class="nav-link" data-scroll-target="#k-nearest-neighbours-method">1.5 K-Nearest neighbours method</a></li>
   <li><a href="#distance-band-method" id="toc-distance-band-method" class="nav-link" data-scroll-target="#distance-band-method">1.6 Distance band method</a></li>
-  <li><a href="#computing-contiguity-weights" id="toc-computing-contiguity-weights" class="nav-link" data-scroll-target="#computing-contiguity-weights">1.7 Computing contiguity weights</a></li>
+  <li><a href="#computing-contiguity-weights" id="toc-computing-contiguity-weights" class="nav-link" data-scroll-target="#computing-contiguity-weights">1.7 Computing contiguity weights</a>
+  <ul class="collapse">
+  <li><a href="#contiguity-weights-queens-method" id="toc-contiguity-weights-queens-method" class="nav-link" data-scroll-target="#contiguity-weights-queens-method">1.7.1 Contiguity weights: Queen’s method</a></li>
+  <li><a href="#contiguity-weights-rooks-method" id="toc-contiguity-weights-rooks-method" class="nav-link" data-scroll-target="#contiguity-weights-rooks-method">1.7.2 Contiguity weights: Rook’s method</a></li>
+  </ul></li>
   <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">1.8</a></li>
   </ul>
 </nav>
@@ -338,7 +349,7 @@ Geodetic CRS:  WGS 84</code></pre>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="dv">7</span>, <span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
-<li>note: to retiain the geospatial properties, the left dataframe must be the sf dataframe (i.e.&nbsp;hunan)</li>
+<li>note: to retain the geospatial properties, the left dataframe must be the sf dataframe (i.e.&nbsp;hunan)</li>
 <li>left_join() is from dplyr</li>
 <li>usually need to specific ‘join by what?’ but there is built in intelligence to identify which column exists in both</li>
 <li>to know which columns to select by, need to run hunan_GDPPC without the select statement first</li>
@@ -367,19 +378,88 @@ Geodetic CRS:  WGS 84</code></pre>
 <p><img src="In-class_Ex06_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<ul>
+<li>default number of classes for the legend is 5</li>
+<li>alpha at the borders to reduce the intensity of the border</li>
+<li>classification method of quantile is acceptable, can explore other methods for other cases</li>
+</ul>
 </section>
 </section>
 <section id="identify-area-neighbours" class="level1">
 <h1>1.4 Identify area neighbours</h1>
+<section id="contiguity-neighbours-method" class="level2">
+<h2 class="anchored" data-anchor-id="contiguity-neighbours-method">1.4.1 Contiguity neighbours method</h2>
+<section id="queens-method" class="level3">
+<h3 class="anchored" data-anchor-id="queens-method">Queen’s method</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cn_queen <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>more about <a href="https://sfdep.josiahparry.com/reference/st_contiguity.html">st_contiguity()</a></li>
+<li>needs the geometry field of POLYGON sf dataframe</li>
+<li>chap 08 8.5.1, <code>poly2nb()</code> is used from spdep, but here we are using sfdep</li>
+<li>default is queen so dont need to state which method to use</li>
+<li><code>hunan_GDPPC</code> is sf polygon data and has the geometry column</li>
+<li><code>cn_queen</code> retains the sf polygon and geometry attributes</li>
+<li>.before=1 puts the newly created field at the first column of the table</li>
+</ul>
+</section>
+<section id="rooks-method" class="level3">
+<h3 class="anchored" data-anchor-id="rooks-method">Rook’s method</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>cn_rook <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">queen =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>spdep can do bishop method, sfdep cannot do bishop method</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># geo &lt;- sf_geometry()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
 </section>
 <section id="k-nearest-neighbours-method" class="level1">
 <h1>1.5 K-Nearest neighbours method</h1>
 </section>
 <section id="distance-band-method" class="level1">
 <h1>1.6 Distance band method</h1>
+<ul>
+<li>sfdep <a href="https://sfdep.josiahparry.com/reference/st_dist_band.html">st_dist_band</a></li>
+</ul>
 </section>
 <section id="computing-contiguity-weights" class="level1">
 <h1>1.7 Computing contiguity weights</h1>
+<section id="contiguity-weights-queens-method" class="level2">
+<h2 class="anchored" data-anchor-id="contiguity-weights-queens-method">1.7.1 Contiguity weights: Queen’s method</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li>^ this code combines 1.4.1 inside, so 1.4.1 is not needed</li>
+<li>the <code>wt</code> column of the <code>wm_q</code> output is now standardised</li>
+</ul>
+</section>
+<section id="contiguity-weights-rooks-method" class="level2">
+<h2 class="anchored" data-anchor-id="contiguity-weights-rooks-method">1.7.2 Contiguity weights: Rook’s method</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wm_r <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">queen =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ul>
+<li><code>queen</code> has to be placed before <code>wt</code></li>
+</ul>
+</section>
 </section>
 <section id="section" class="level1">
 <h1>1.8</h1>
