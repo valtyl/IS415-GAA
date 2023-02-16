@@ -7,10 +7,379 @@ execute:
   eval: true
 date: "13 February 2023"
 date-modified: "`r Sys.Date()`"
-number-sections: true
+# number-sections: true
 editor: visual
 format: html
 author: Valencia
 ---
 
+# 1 Setting the Scene
 
+Since late December 2019, an outbreak of a novel coronavirus disease (COVID-19; previously known as 2019-nCoV) was reported in Wuhan, China, which had subsequently affected 210 countries worldwide. In general, COVID-19 is an acute resolved disease but it can also be deadly, with a 2% case fatality rate.
+
+The COVID-19 vaccination in Indonesia is an ongoing mass immunisation in response to the COVID-19 pandemic in Indonesia. On 13 January 2021, the program commenced when President Joko Widodo was vaccinated at the presidential palace. In terms of total doses given, Indonesia ranks third in Asia and fifth in the world.
+
+According to wikipedia, as of 5 February 2023 at 18:00 WIB (UTC+7), 204,266,655 people had received the first dose of the vaccine and 175,131,893 people had been fully vaccinated; 69,597,474 of them had been inoculated with the booster or the third dose, while 1,585,164 had received the fourth dose. Jakarta has the highest percentage of population fully vaccinated with 103.46%, followed by Bali and Special Region of Yogyakarta with 85.45% and 83.02% respectively.
+
+Despite its compactness, the cumulative vaccination rate are not evenly distributed within DKI Jakarta. The question is where are the sub-districts with relatively higher number of vaccination rate and how they changed over time.
+
+# 2 Objectives
+
+Exploratory Spatial Data Analysis (ESDA) hold tremendous potential to address complex problems facing society. In this study, you are tasked to apply appropriate Local Indicators of Spatial Association (LISA) and Emerging Hot Spot Analysis (EHSA) to undercover the spatio-temporal trends of COVID-19 vaccination in DKI Jakarta.
+
+# 3 The Data
+
+## 3.1 Aspatial Data
+
+For the purpose of this assignment, data from [Riwayat File Vaksinasi DKI Jakarta](https://riwayat-file-vaksinasi-dki-jakarta-jakartagis.hub.arcgis.com/) will be used. Daily vaccination data are provides. You are only required to download either the first day of the month or last day of the month of the study period.
+
+## 3.2 Geospatial Data
+
+For the purpose of this study, DKI Jakarta administration boundary 2019 will be used. The data set can be downloaded at Indonesia Geospatial portal, specifically at [this page](https://www.indonesia-geospasial.com/2020/04/download-shapefile-shp-batas-desa.html).
+
+::: callout-note
+-   The national Projected Coordinates Systems of Indonesia is DGN95 / Indonesia TM-3 zone 54.1.
+-   Exclude all the outer islands from the DKI Jakarta sf data frame, and
+-   Retain the first nine fields in the DKI Jakarta sf data frame. The ninth field JUMLAH_PEN = Total Population.
+:::
+
+# 4 Getting Started
+
+## 4.1 Installing and Loading R packages
+
+-   [sf](https://r-spatial.github.io/sf/): to import, manage, and process geospatial data
+
+-   [tidyverse](https://www.tidyverse.org/): a collection of packages ([readr](https://readr.tidyverse.org/) for importing delimited text file, [tidyr](https://tidyr.tidyverse.org/) for tidying data, [dplyr](https://dplyr.tidyverse.org/) for wrangling data)
+
+-   [tmap](https://cran.r-project.org/web/packages/tmap/): provides functions for plotting cartographic quality static point patterns maps or interactive maps
+
+-   [sfdep](https://cran.r-project.org/web/packages/sfdep/): for spatial dependence of simple features
+-   [readxl](https://readxl.tidyverse.org/reference/read_excel.html): for importing Excel worksheets(.xlsx)
+-   [plyr](https://cran.r-project.org/package=plyr): for splitting data, applying functions and combining results
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+pacman::p_load(sf, sfdep, readxl, plyr, tmap, tidyverse)
+```
+
+## 4.2 Data Wrangling: Geospatial Data
+
+### 4.2.1 Importing the Geospatial Data
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# bd stands for "batas desa", translated as "village boundary"
+# reads in geospatial data and stores into bd_jakarta dataframe
+bd_jakarta <- st_read(dsn = "data/geospatial",
+                       layer = "BATAS_DESA_DESEMBER_2019_DUKCAPIL_DKI_JAKARTA")
+```
+From the output message, we learn that:
+-   Geometry type: Multipolygon
+-   269 features, 161 fields
+-   Assigned CRS is [WGS 84](https://epsg.io/4326), 'World Geodetic System 1984' (This is not appropriate as this geospatial dataset is Indonesian-specific hence we will have to use the national CRS of Indonesia, [DGN 95](https://epsg.io/23845), 'Datum Geodesi Nasional 1995'. We will change this later on.) (Refer to note in section 3.2)
+
+
+### 4.2.2 Data Pre-Processing
+Before visualising our data, we need to check if there are:
+-   invalid geometries
+-   or missing values
+These can impact future calculations and representations
+
+#### 4.2.2.1 Invalid Geometries
+Checking for invalid geometries:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# function breakdown:
+# the st_is_valid function checks whether a geometry is valid
+# which returns the indices of certain values based on logical conditions
+# length returns the length of data objects
+
+# checks for the number of geometries that are NOT valid
+length(which(st_is_valid(bd_jakarta) == FALSE))
+```
+The message output shows that there are no invalid geometries.
+
+#### 4.2.2.2 Missing Values
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# the rowSums(is.na(bd_jakarta))!=0 checks every row if there are NA values, returning TRUE or FALSE
+# the bd_jakarta 'wrapper' prints said rows that contain NA values
+bd_jakarta[rowSums(is.na(bd_jakarta))!=0,]
+```
+The message output shows that there are 2 rows with missing values for the columns `KAB_KOTA` (City), `KECAMATAN` (District), `DESA_KELUR` (Village) and a few more others. We can also see that there are way too many columns, and we will remove the unnecessary columns later on.
+
+To clean up, we will remove the rows that have NA values in `DESA_KELUR` since we are interested in the dataset on a sub-district level:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# removes rows that have an NA value in DESA_KELUR
+# in context of this data, we can use other columns, such as KAB_KOTA or KECAMATAN
+# but since we're looking at this on a sub-district level, DESA_KELUR seemed most appropriate
+bd_jakarta <- na.omit(bd_jakarta,c("DESA_KELUR"))
+```
+
+#### 4.2.2.3 Verifying & Transforming the Coordinate System
+Checking the CRS of `bd_jakarta`:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# retrieves the coordinate system of bd_jakarta
+st_crs(bd_jakarta)
+```
+
+As mentioned in section 4.2.1, WGS 84 is not appropriate and we should change it to DGN 95:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# transforms the CRS to DGN95, ESPG code 23845
+bd_jakarta <- st_transform(bd_jakarta, 23845)
+```
+
+Checking if the CRS has been properly assigned:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+st_crs(bd_jakarta)
+```
+
+The transformation is done.
+
+### 4.2.3 Data Visualisation
+First, we will visualise the geometry of Jakarta:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+plot(st_geometry(bd_jakarta))
+```
+
+From the output, it shows that `bd_jakarta` includes the main land but also many other outer islands that we are not relevant to our analysis in this assignment. (Refer to note in section 3.2)
+
+To remove the outer islands, we should look at how unique values at the City level, `KAB_KOTA`:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# outputs unique values of the KAB_KOTA field
+unique(bd_jakarta$"KAB_KOTA")
+```
+From the output, the cities within Jakarta have a JAKARTA prefix, while KEPULAUAN SERIBU (which means 'Thousand Islands') refers to the outer islands. Visualising `KAB_KOTA` will confirm this:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# with bd_jakarta as the input data (setting the 'base')
+# draw the KAB_KOTA (city) polygons
+# essentially shades the map according to the city divisions
+tm_shape(bd_jakarta) + 
+  tm_polygons("KAB_KOTA")
+```
+
+The above visualisation proves that KEPULAUAN SERIBU are the outer islands to remove:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# filters out the outer islands by accepting only if the value of KAB_KOTA is NOT KEPULAUAN SERIBU
+bd_jakarta <- filter(bd_jakarta, KAB_KOTA != "KEPULAUAN SERIBU")
+```
+
+### 4.2.4 Retaining relavant columns only
+As seen in section 4.2.2.2, there were many unnecessary and irrelevant columns that we could remove. (Refer to note in section 3.2)
+
+Retaining the relevant fields (first 9 fields) to our analysis:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# filters out other fields by accepting only the first 9 fields
+bd_jakarta <- bd_jakarta[, 0:9]
+```
+
+### 4.2.5 Renaming the Columns in English
+For ease of comprehension:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# with reference to: https://www.codegrepper.com/code-examples/r/rename+column+name+in+r
+# renames the columns in the style New_Name = OLD_NAME
+bd_jakarta <- bd_jakarta %>% 
+  dplyr::rename(
+    Object_ID=OBJECT_ID,
+    Province=PROVINSI, 
+    City=KAB_KOTA, 
+    District=KECAMATAN, 
+    Village_Code=KODE_DESA, 
+    Village=DESA, 
+    Sub_District=DESA_KELUR,
+    Code=KODE, 
+    Total_Population=JUMLAH_PEN
+    )
+```
+
+### 4.2.6 Brief EDA of Geospatial Data
+Summary of `bd_jakarta`:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# reveals the data type of all fields + some values
+glimpse(bd_jakarta)
+```
+
+Number of unique sub-districts:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+length(unique(bd_jakarta$"Sub_District"))
+```
+
+Number of unique districts:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+length(unique(bd_jakarta$"District"))
+```
+
+Number of unique cities:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+length(unique(bd_jakarta$"City"))
+```
+
+There are 261 unique sub-districts, 42 unique districts and 5 unique cities. The maximum number of categories for mapping with tmap is 30. Even though max.categories can be adjusted in tmap_options, too many segmented sections on a single map will not provide much insights hence we should do the EDA at 'City' level:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# shades the map according to the city divisions
+tm_shape(bd_jakarta) + 
+  tm_polygons("City")
+```
+
+## 4.3 Data Wrangling: Aspatial Data
+
+### 4.3.1 Pre-Importing EDA
+For the aspatial data, I have decided to download the data for last day of every month from July 2021 to June 2022. However, the last day of Feb 2022 provided on the website in section 3.1 is 27 Feb instead of 28 Feb. 
+
+This section is to check for any discrepancies in each .xlsx file in the 'data/aspatial' folder by performing EDA:
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+jul2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Juli 2021).xlsx")
+glimpse(jul2021)
+```
+The above output shows that there are no duplicates for the columns.
+
+Below, similar codes were used to check for the other excel files. There are no duplicates in the rest of the files. But, the excel files for July 2021 to February 2022 have 27 columns while those for March 2022 to June 2022 have 34 columns.
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+aug2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Agustus 2021).xlsx")
+glimpse(aug2021)
+
+sep2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (30 September 2021).xlsx")
+glimpse(sep2021)
+
+oct2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Oktober 2021).xlsx")
+glimpse(oct2021)
+
+nov2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (30 November 2021).xlsx")
+glimpse(nov2021)
+
+dec2021 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Desember 2021).xlsx")
+glimpse(dec2021)
+
+jan2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Januari 2022).xlsx")
+glimpse(jan2022)
+
+feb2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (27 Februari 2022).xlsx")
+glimpse(feb2022)
+
+mar2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Maret 2022).xlsx")
+glimpse(mar2022)
+
+apr2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (30 April 2022).xlsx")
+glimpse(apr2022)
+
+may2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (31 Mei 2022).xlsx")
+glimpse(may2022)
+
+jun2022 <- read_xlsx("data/aspatial/Data Vaksinasi Berbasis Kelurahan (30 Juni 2022).xlsx")
+glimpse(jun2022)
+```
+
+### 4.3.2 Creating an Aspatial Data Pre-processing Function
+Firstly, here are some requirements for our aspatial data:
+Columns of interest: 
+-   KODE KELURAHAN: sub-district code
+-   KELURAHAN: sub-district
+-   SASARAN: target
+-   BELUM VAKSIN: not yet vaccinated
+-   TOTAL VAKSIN DIBERIKAN: total vaccine administered
+
+We need to create an extra Date column that has the month and year of the observation. Note that the files have a naming convention "Data Vaksinasi Berbasis Kelurahan (DD Month YYYY).xlsx"
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# takes in an aspatial data filepath and returns a processed output
+aspatial_preprocess <- function(filepath){
+  result_file <- read_xlsx(filepath)[-1,]
+  
+  # Create the Date Column
+  # the format of our files is: Data Vaksinasi Berbasis Kelurahan (DD Month YYYY)
+  # while the start is technically "(", "(" is part of a regular expression and leads to a warning message, so we'll use "Kelurahan" instead. The [[1]] refers to the first element in the list.
+  # we're loading it as DD-Month-YYYY format
+  # the end is 1 space before "Pukul", which means we have to -2 spaces (one for P, one for space)
+  # as such, the most relevant functions are substr (returns a substring) and either str_locate (returns location of substring as an integer matrix) or gregexpr (returns a list of locations of substring)
+  # reference https://stackoverflow.com/questions/14249562/find-the-location-of-a-character-in-string
+  startpoint <- gregexpr(pattern="Kelurahan", filepath)[[1]] + 11
+  
+  result_file$Date <- substr(filepath, startpoint, nchar(filepath)-6)
+  
+  # Create total population (vaccinated and non-vaccinated)
+  result_file$TotalPop <- rowSums(result_file[, c("BELUM VAKSIN", "TOTAL VAKSIN\r\nDIBERIKAN")])
+  
+  # Retain the Relevant Columns
+  result_file <- result_file %>% 
+    select("Date", 
+           "KODE KELURAHAN", 
+           "KELURAHAN", 
+           "SASARAN", 
+           "BELUM VAKSIN", 
+           "TOTAL VAKSIN\r\nDIBERIKAN", 
+           "TotalPop")
+  return(result_file)
+}
+```
+
+
+```{r}
+# in the folder 'data/aspatial', find files with the extension '.xlsx' and add it to our fileslist 
+# the full.names=TRUE prepends the directory path to the file names, giving a relative file path - otherwise, only the file names (not the paths) would be returned 
+# reference: https://stat.ethz.ch/R-manual/R-devel/library/base/html/list.files.html
+fileslist <-list.files(path = "data/aspatial", pattern = "*.xlsx", full.names=TRUE)
+
+# afterwards, for every element in fileslist, apply aspatial_process function
+dflist <- lapply(seq_along(fileslist), function(x) aspatial_preprocess(fileslist[x]))
+```
+
+
+```{r}
+vacc_jakarta <- ldply(dflist, data.frame)
+```
+
+
+```{r}
+glimpse(vacc_jakarta)
+```
+
+
+###  Importing the Aspatial Data
+
+
+## 4.3 Choropleth Mapping and Analysis
+
+## 4.4 Local Gi\* Analysis
+
+## 4.5 Emerging Hot Spot Analysis (EHSA)
+
+# 5 References
