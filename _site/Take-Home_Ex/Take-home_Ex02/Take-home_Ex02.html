@@ -126,6 +126,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   }
 }</script>
 
+<script src="../../site_libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="../../site_libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -266,11 +269,24 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <ul class="collapse">
   <li><a href="#pre-importing-eda" id="toc-pre-importing-eda" class="nav-link" data-scroll-target="#pre-importing-eda">4.3.1 Pre-Importing EDA</a></li>
   <li><a href="#creating-an-aspatial-data-pre-processing-function" id="toc-creating-an-aspatial-data-pre-processing-function" class="nav-link" data-scroll-target="#creating-an-aspatial-data-pre-processing-function">4.3.2 Creating an Aspatial Data Pre-processing Function</a></li>
-  <li><a href="#importing-the-aspatial-data" id="toc-importing-the-aspatial-data" class="nav-link" data-scroll-target="#importing-the-aspatial-data">Importing the Aspatial Data</a></li>
+  <li><a href="#importing-the-aspatial-data" id="toc-importing-the-aspatial-data" class="nav-link" data-scroll-target="#importing-the-aspatial-data">4.3.3 Importing the Aspatial Data</a></li>
+  <li><a href="#formatting-data-column" id="toc-formatting-data-column" class="nav-link" data-scroll-target="#formatting-data-column">4.3.4 Formatting Data Column</a></li>
+  <li><a href="#renaming-columns-to-english" id="toc-renaming-columns-to-english" class="nav-link" data-scroll-target="#renaming-columns-to-english">4.3.4 Renaming Columns to English</a></li>
+  <li><a href="#further-data-processing" id="toc-further-data-processing" class="nav-link" data-scroll-target="#further-data-processing">4.3.5 Further Data Processing</a></li>
   </ul></li>
-  <li><a href="#choropleth-mapping-and-analysis" id="toc-choropleth-mapping-and-analysis" class="nav-link" data-scroll-target="#choropleth-mapping-and-analysis">4.3 Choropleth Mapping and Analysis</a></li>
-  <li><a href="#local-gi-analysis" id="toc-local-gi-analysis" class="nav-link" data-scroll-target="#local-gi-analysis">4.4 Local Gi* Analysis</a></li>
-  <li><a href="#emerging-hot-spot-analysis-ehsa" id="toc-emerging-hot-spot-analysis-ehsa" class="nav-link" data-scroll-target="#emerging-hot-spot-analysis-ehsa">4.5 Emerging Hot Spot Analysis (EHSA)</a></li>
+  <li><a href="#geospatial-data-integration" id="toc-geospatial-data-integration" class="nav-link" data-scroll-target="#geospatial-data-integration">4.3 Geospatial Data Integration</a>
+  <ul class="collapse">
+  <li><a href="#preliminary-joining-eda" id="toc-preliminary-joining-eda" class="nav-link" data-scroll-target="#preliminary-joining-eda">4.3.1 Preliminary joining + EDA</a></li>
+  <li><a href="#identifying-mismatched-sub-district-records" id="toc-identifying-mismatched-sub-district-records" class="nav-link" data-scroll-target="#identifying-mismatched-sub-district-records">4.3.2 Identifying Mismatched Sub-District Records</a></li>
+  <li><a href="#re-joining-the-geospatial-and-aspatial-data-frames-eda" id="toc-re-joining-the-geospatial-and-aspatial-data-frames-eda" class="nav-link" data-scroll-target="#re-joining-the-geospatial-and-aspatial-data-frames-eda">Re-joining the geospatial and aspatial data frames + EDA</a></li>
+  </ul></li>
+  <li><a href="#calculation-for-vaccination-rate" id="toc-calculation-for-vaccination-rate" class="nav-link" data-scroll-target="#calculation-for-vaccination-rate">4.4 Calculation for Vaccination Rate</a>
+  <ul class="collapse">
+  <li><a href="#converting-dataframes-to-sf-objects" id="toc-converting-dataframes-to-sf-objects" class="nav-link" data-scroll-target="#converting-dataframes-to-sf-objects">4.4.1 Converting dataframes to sf objects</a></li>
+  </ul></li>
+  <li><a href="#choropleth-mapping-and-analysis" id="toc-choropleth-mapping-and-analysis" class="nav-link" data-scroll-target="#choropleth-mapping-and-analysis">4.5 Choropleth Mapping and Analysis</a></li>
+  <li><a href="#local-gi-analysis" id="toc-local-gi-analysis" class="nav-link" data-scroll-target="#local-gi-analysis">4.6 Local Gi* Analysis</a></li>
+  <li><a href="#emerging-hot-spot-analysis-ehsa" id="toc-emerging-hot-spot-analysis-ehsa" class="nav-link" data-scroll-target="#emerging-hot-spot-analysis-ehsa">4.7 Emerging Hot Spot Analysis (EHSA)</a></li>
   </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">5 References</a></li>
   </ul>
@@ -305,7 +321,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 16, 2023</p>
+      <p class="date-modified">February 17, 2023</p>
     </div>
   </div>
     
@@ -364,11 +380,12 @@ Note
 <li><p><a href="https://cran.r-project.org/web/packages/sfdep/">sfdep</a>: for spatial dependence of simple features</p></li>
 <li><p><a href="https://readxl.tidyverse.org/reference/read_excel.html">readxl</a>: for importing Excel worksheets(.xlsx)</p></li>
 <li><p><a href="https://cran.r-project.org/package=plyr">plyr</a>: for splitting data, applying functions and combining results</p></li>
+<li><p><a href="https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html">kableExtra</a>: for table customisation</p></li>
 </ul>
 <div class="cell">
 <details>
 <summary>Show the code!</summary>
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, readxl, plyr, tmap, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(sf, sfdep, readxl, plyr, kableExtra, tmap, tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -754,7 +771,7 @@ $ geometry         &lt;MULTIPOLYGON [m]&gt; MULTIPOLYGON (((-3626874 69..., MULT
 <h2 class="anchored" data-anchor-id="data-wrangling-aspatial-data">4.3 Data Wrangling: Aspatial Data</h2>
 <section id="pre-importing-eda" class="level3">
 <h3 class="anchored" data-anchor-id="pre-importing-eda">4.3.1 Pre-Importing EDA</h3>
-<p>For the aspatial data, I have decided to download the data for last day of every month from July 2021 to June 2022. However, the last day of Feb 2022 provided on the website in section 3.1 is 27 Feb instead of 28 Feb.&nbsp;</p>
+<p>For the aspatial data, I have decided to download the data for last day of every month from July 2021 to June 2022. However, the last day of Feb 2022 provided on the website in section 3.1 is 27 Feb instead of 28 Feb.</p>
 <p>This section is to check for any discrepancies in each .xlsx file in the ‘data/aspatial’ folder by performing EDA:</p>
 <div class="cell">
 <details>
@@ -1232,36 +1249,39 @@ $ `REMAJA TOTAL\r\nVAKSIN DIBERIKAN`           &lt;dbl&gt; 1693511, 4446, 5247, 
 <summary>Show the code!</summary>
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="co"># takes in an aspatial data filepath and returns a processed output</span></span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>aspatial_preprocess <span class="ot">&lt;-</span> <span class="cf">function</span>(filepath){</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  result_file <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(filepath)[<span class="sc">-</span><span class="dv">1</span>,]</span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create the Date Column</span></span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the format of our files is: Data Vaksinasi Berbasis Kelurahan (DD Month YYYY)</span></span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># while the start is technically "(", "(" is part of a regular expression and leads to a warning message, so we'll use "Kelurahan" instead. The [[1]] refers to the first element in the list.</span></span>
-<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># we're loading it as DD-Month-YYYY format</span></span>
-<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the end is 1 space before "Pukul", which means we have to -2 spaces (one for P, one for space)</span></span>
-<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># as such, the most relevant functions are substr (returns a substring) and either str_locate (returns location of substring as an integer matrix) or gregexpr (returns a list of locations of substring)</span></span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reference https://stackoverflow.com/questions/14249562/find-the-location-of-a-character-in-string</span></span>
-<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>  startpoint <span class="ot">&lt;-</span> <span class="fu">gregexpr</span>(<span class="at">pattern=</span><span class="st">"Kelurahan"</span>, filepath)[[<span class="dv">1</span>]] <span class="sc">+</span> <span class="dv">11</span></span>
-<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>  result_file<span class="sc">$</span>Date <span class="ot">&lt;-</span> <span class="fu">substr</span>(filepath, startpoint, <span class="fu">nchar</span>(filepath)<span class="sc">-</span><span class="dv">6</span>)</span>
-<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create total population (vaccinated and non-vaccinated)</span></span>
-<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>  result_file<span class="sc">$</span>TotalPop <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(result_file[, <span class="fu">c</span>(<span class="st">"BELUM VAKSIN"</span>, <span class="st">"TOTAL VAKSIN</span><span class="sc">\r\n</span><span class="st">DIBERIKAN"</span>)])</span>
-<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Retain the Relevant Columns</span></span>
-<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>  result_file <span class="ot">&lt;-</span> result_file <span class="sc">%&gt;%</span> </span>
-<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"Date"</span>, </span>
-<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>           <span class="st">"KODE KELURAHAN"</span>, </span>
-<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>           <span class="st">"KELURAHAN"</span>, </span>
-<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>           <span class="st">"SASARAN"</span>, </span>
-<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>           <span class="st">"BELUM VAKSIN"</span>, </span>
-<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>           <span class="st">"TOTAL VAKSIN</span><span class="sc">\r\n</span><span class="st">DIBERIKAN"</span>, </span>
-<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>           <span class="st">"TotalPop"</span>)</span>
-<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result_file)</span>
-<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># we use [-1,] to remove the first row of the file as the first row is a subheader row</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  result_file <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(filepath)[<span class="sc">-</span><span class="dv">1</span>,]</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create the Date Column</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the format of our files is: Data Vaksinasi Berbasis Kelurahan (DD Month YYYY)</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># while the start is technically "(", "(" is part of a regular expression and leads to a warning message, so we'll use "Kelurahan" instead. The [[1]] refers to the first element in the list.</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># we're loading it as DD-Month-YYYY format</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># to get the end index, we use the length of the filepath - 6 </span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># as such, the most relevant functions are substr (returns a substring) and either str_locate (returns location of substring as an integer matrix) or gregexpr (returns a list of locations of substring)</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reference https://stackoverflow.com/questions/14249562/find-the-location-of-a-character-in-string</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>  startpoint <span class="ot">&lt;-</span> <span class="fu">gregexpr</span>(<span class="at">pattern=</span><span class="st">"Kelurahan"</span>, filepath)[[<span class="dv">1</span>]] <span class="sc">+</span> <span class="dv">11</span></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>  result_file<span class="sc">$</span>Date <span class="ot">&lt;-</span> <span class="fu">substr</span>(filepath, startpoint, <span class="fu">nchar</span>(filepath)<span class="sc">-</span><span class="dv">6</span>)</span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Retain the Relevant Columns</span></span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>  result_file <span class="ot">&lt;-</span> result_file <span class="sc">%&gt;%</span> </span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(<span class="st">"Date"</span>, </span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>           <span class="st">"KODE KELURAHAN"</span>, </span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>           <span class="st">"KELURAHAN"</span>, </span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>           <span class="st">"SASARAN"</span>, </span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>           <span class="st">"BELUM VAKSIN"</span>, </span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>           <span class="st">"TOTAL VAKSIN</span><span class="sc">\r\n</span><span class="st">DIBERIKAN"</span>)</span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result_file)</span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+</section>
+<section id="importing-the-aspatial-data" class="level3">
+<h3 class="anchored" data-anchor-id="importing-the-aspatial-data">4.3.3 Importing the Aspatial Data</h3>
+<p>Feeding Files into the <code>aspatial_preprocess</code> function using list.files() and <a href="https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/lapply">lapply()</a> to apply a function to all elements in the list:</p>
 <div class="cell">
+<details>
+<summary>Show the code!</summary>
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># in the folder 'data/aspatial', find files with the extension '.xlsx' and add it to our fileslist </span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the full.names=TRUE prepends the directory path to the file names, giving a relative file path - otherwise, only the file names (not the paths) would be returned </span></span>
 <span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="co"># reference: https://stat.ethz.ch/R-manual/R-devel/library/base/html/list.files.html</span></span>
@@ -1269,37 +1289,445 @@ $ `REMAJA TOTAL\r\nVAKSIN DIBERIKAN`           &lt;dbl&gt; 1693511, 4446, 5247, 
 <span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="co"># afterwards, for every element in fileslist, apply aspatial_process function</span></span>
 <span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>dflist <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">seq_along</span>(fileslist), <span class="cf">function</span>(x) <span class="fu">aspatial_preprocess</span>(fileslist[x]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
+<p>Converting the <code>dflist</code> into an actual dataframe using <a href="https://www.rdocumentation.org/packages/plyr/versions/1.8.6/topics/ldply">ldply()</a>:</p>
 <div class="cell">
+<details>
+<summary>Show the code!</summary>
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>vacc_jakarta <span class="ot">&lt;-</span> <span class="fu">ldply</span>(dflist, data.frame)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
+<p>Checking <code>vacc_jakarta</code>:</p>
 <div class="cell">
+<details>
+<summary>Show the code!</summary>
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(vacc_jakarta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 3,204
-Columns: 7
+Columns: 6
 $ Date                    &lt;chr&gt; "27 Februari 2022", "27 Februari 2022", "27 Fe…
 $ KODE.KELURAHAN          &lt;chr&gt; "3172051003", "3173041007", "3175041005", "317…
 $ KELURAHAN               &lt;chr&gt; "ANCOL", "ANGKE", "BALE KAMBANG", "BALI MESTER…
 $ SASARAN                 &lt;dbl&gt; 23947, 29381, 29074, 9752, 26285, 21566, 23886…
 $ BELUM.VAKSIN            &lt;dbl&gt; 4592, 5319, 5903, 1649, 4030, 3950, 3344, 9382…
-$ TOTAL.VAKSIN..DIBERIKAN &lt;dbl&gt; 36042, 44800, 42925, 15348, 42415, 33278, 3929…
-$ TotalPop                &lt;dbl&gt; 40634, 50119, 48828, 16997, 46445, 37228, 4264…</code></pre>
+$ TOTAL.VAKSIN..DIBERIKAN &lt;dbl&gt; 36042, 44800, 42925, 15348, 42415, 33278, 3929…</code></pre>
 </div>
 </div>
 </section>
-<section id="importing-the-aspatial-data" class="level3">
-<h3 class="anchored" data-anchor-id="importing-the-aspatial-data">Importing the Aspatial Data</h3>
+<section id="formatting-data-column" class="level3">
+<h3 class="anchored" data-anchor-id="formatting-data-column">4.3.4 Formatting Data Column</h3>
+<p>The Dates are currently in string format as there were derived from the file names, hence we need to convert the Dates into datetime format.</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># parses the 'Date' column into Month(Full Name)-YYYY datetime objects</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="co"># reference: https://stackoverflow.com/questions/53380650/b-y-date-conversion-gives-na</span></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a><span class="co"># locale="ind" means that the locale has been set as Indonesia</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setlocale</span>(<span class="at">locale=</span><span class="st">"ind"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "LC_COLLATE=Indonesian_Indonesia.1252;LC_CTYPE=Indonesian_Indonesia.1252;LC_MONETARY=Indonesian_Indonesia.1252;LC_NUMERIC=C;LC_TIME=Indonesian_Indonesia.1252"</code></pre>
+</div>
+</div>
+<p>Converting to datetime format:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>vacc_jakarta<span class="sc">$</span>Date <span class="ot">&lt;-</span> <span class="fu">c</span>(vacc_jakarta<span class="sc">$</span>Date) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.Date</span>(vacc_jakarta<span class="sc">$</span>Date, <span class="at">format =</span><span class="st">"%d %B %Y"</span>)</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(vacc_jakarta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 3,204
+Columns: 6
+$ Date                    &lt;date&gt; 2022-02-27, 2022-02-27, 2022-02-27, 2022-02-2~
+$ KODE.KELURAHAN          &lt;chr&gt; "3172051003", "3173041007", "3175041005", "317~
+$ KELURAHAN               &lt;chr&gt; "ANCOL", "ANGKE", "BALE KAMBANG", "BALI MESTER~
+$ SASARAN                 &lt;dbl&gt; 23947, 29381, 29074, 9752, 26285, 21566, 23886~
+$ BELUM.VAKSIN            &lt;dbl&gt; 4592, 5319, 5903, 1649, 4030, 3950, 3344, 9382~
+$ TOTAL.VAKSIN..DIBERIKAN &lt;dbl&gt; 36042, 44800, 42925, 15348, 42415, 33278, 3929~</code></pre>
+</div>
+</div>
+</section>
+<section id="renaming-columns-to-english" class="level3">
+<h3 class="anchored" data-anchor-id="renaming-columns-to-english">4.3.4 Renaming Columns to English</h3>
+<p>Renaming columns to English for ease of comprehension:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co"># renames the columns in the style New_Name = OLD_NAME</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>vacc_jakarta <span class="ot">&lt;-</span> vacc_jakarta <span class="sc">%&gt;%</span> </span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">rename</span>(</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">Date=</span>Date,</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sub_District_Code=</span>KODE.KELURAHAN,</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Sub_District=</span>KELURAHAN, </span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">Target=</span>SASARAN, </span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">Not_Yet_Vaccinated=</span>BELUM.VAKSIN, </span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">Total_Vaccine_Administered=</span>TOTAL.VAKSIN..DIBERIKAN</span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="further-data-processing" class="level3">
+<h3 class="anchored" data-anchor-id="further-data-processing">4.3.5 Further Data Processing</h3>
+<p>After finalising the dataframe, we can proceed with other data processing requirements.</p>
+<p>Checking for missing values:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># returns rows that contain NA values</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>vacc_jakarta[<span class="fu">rowSums</span>(<span class="fu">is.na</span>(vacc_jakarta))<span class="sc">!=</span><span class="dv">0</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] Date                       Sub_District_Code         
+[3] Sub_District               Target                    
+[5] Not_Yet_Vaccinated         Total_Vaccine_Administered
+&lt;0 rows&gt; (or 0-length row.names)</code></pre>
+</div>
+</div>
+<p>From the output, there are no missing values.</p>
+</section>
+</section>
+<section id="geospatial-data-integration" class="level2">
+<h2 class="anchored" data-anchor-id="geospatial-data-integration">4.3 Geospatial Data Integration</h2>
+<section id="preliminary-joining-eda" class="level3">
+<h3 class="anchored" data-anchor-id="preliminary-joining-eda">4.3.1 Preliminary joining + EDA</h3>
+<p>We need to join the geospatial and aspatial data frames but we first need to see what they both commonly have.</p>
+<p>Check column names of <code>bd_jakarta</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(bd_jakarta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "Object_ID"        "Village_Code"     "Village"          "Code"            
+ [5] "Province"         "City"             "District"         "Sub_District"    
+ [9] "Total_Population" "geometry"        </code></pre>
+</div>
+</div>
+<p>Check column names of <code>vacc_jakarta</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(vacc_jakarta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Date"                       "Sub_District_Code"         
+[3] "Sub_District"               "Target"                    
+[5] "Not_Yet_Vaccinated"         "Total_Vaccine_Administered"</code></pre>
+</div>
+</div>
+<p>We are able to see that we can join the dataframes with <code>Sub_District</code> and <code>Sub_District_Code</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a>combined_jakarta <span class="ot">&lt;-</span> <span class="fu">left_join</span>(bd_jakarta, vacc_jakarta,</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">by=</span><span class="fu">c</span>(</span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>                                <span class="st">"Sub_District"</span><span class="ot">=</span><span class="st">"Sub_District"</span>, </span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>                             <span class="st">"Village_Code"</span><span class="ot">=</span><span class="st">"Sub_District_Code"</span>)</span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>                              )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Visualising combined_jakarta in terms of vaccinated and total population:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>vaccinated <span class="ot">=</span> <span class="fu">tm_shape</span>(combined_jakarta)<span class="sc">+</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"Total_Vaccine_Administered"</span>) <span class="sc">+</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Vaccinated Count"</span>)</span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-6"><a href="#cb71-6" aria-hidden="true" tabindex="-1"></a>total_population <span class="ot">=</span> <span class="fu">tm_shape</span>(combined_jakarta)<span class="sc">+</span></span>
+<span id="cb71-7"><a href="#cb71-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"Total_Population"</span>) <span class="sc">+</span></span>
+<span id="cb71-8"><a href="#cb71-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb71-9"><a href="#cb71-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Total Count"</span>)</span>
+<span id="cb71-10"><a href="#cb71-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb71-11"><a href="#cb71-11" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(vaccinated, total_population)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>There are some missing values even though there are no rows with missing values. This could be due to the mismatch in the values due to slightly different namings for the same sub-district when the left join was done.</p>
+</section>
+<section id="identifying-mismatched-sub-district-records" class="level3">
+<h3 class="anchored" data-anchor-id="identifying-mismatched-sub-district-records">4.3.2 Identifying Mismatched Sub-District Records</h3>
+<p>Checking for unique values of Sub-District in vacc_jakarta but not in bd_jakarta and vice versa:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>vacc_subdistrict <span class="ot">&lt;-</span> <span class="fu">c</span>(vacc_jakarta<span class="sc">$</span>Sub_District)</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>bd_subdistrict <span class="ot">&lt;-</span> <span class="fu">c</span>(bd_jakarta<span class="sc">$</span>Sub_District)</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(vacc_subdistrict[<span class="sc">!</span>(vacc_subdistrict <span class="sc">%in%</span> bd_subdistrict)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "BALE KAMBANG"          "HALIM PERDANA KUSUMAH" "JATI PULO"            
+ [4] "KAMPUNG TENGAH"        "KERENDANG"             "KRAMAT JATI"          
+ [7] "PAL MERIAM"            "PINANG RANTI"          "PULAU HARAPAN"        
+[10] "PULAU KELAPA"          "PULAU PANGGANG"        "PULAU PARI"           
+[13] "PULAU TIDUNG"          "PULAU UNTUNG JAWA"     "RAWA JATI"            </code></pre>
+</div>
+</div>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">unique</span>(bd_subdistrict[<span class="sc">!</span>(bd_subdistrict <span class="sc">%in%</span> vacc_subdistrict)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "KRENDANG"             "RAWAJATI"             "TENGAH"              
+[4] "BALEKAMBANG"          "PINANGRANTI"          "JATIPULO"            
+[7] "PALMERIAM"            "KRAMATJATI"           "HALIM PERDANA KUSUMA"</code></pre>
+</div>
+</div>
+<p>Table to view difference in naming:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="co"># initialise a dataframe of our cases vs bd subdistrict spelling</span></span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>spelling <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Aspatial_Cases=</span><span class="fu">c</span>(<span class="st">"BALE KAMBANG"</span>, <span class="st">"HALIM PERDANA KUSUMAH"</span>, <span class="st">"JATI PULO"</span>, <span class="st">"KAMPUNG TENGAH"</span>, <span class="st">"KERENDANG"</span>, <span class="st">"KRAMAT JATI"</span>, <span class="st">"PAL MERIAM"</span>, <span class="st">"PINANG RANTI"</span>, <span class="st">"RAWA JATI"</span>),</span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Geospatial_BD=</span><span class="fu">c</span>(<span class="st">"BALEKAMBAG"</span>, <span class="st">"HALIM PERDANA KUSUMA"</span>, <span class="st">"JATIPULO"</span>, <span class="st">"TENGAH"</span>, <span class="st">"KRENDANG"</span>, <span class="st">"KRAMATJATI"</span>, <span class="st">"PALMERIAM"</span>, <span class="st">"PINANGRANTI"</span>, <span class="st">"RAWAJATI"</span>)</span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a><span class="co"># with dataframe a input, outputs a kable</span></span>
+<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(spelling, <span class="at">caption=</span><span class="st">"Mismatched Records"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_material</span>(<span class="st">"hover"</span>, <span class="at">latex_options=</span><span class="st">"scale_down"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+
+<table class=" lightable-material lightable-hover" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
+<caption>Mismatched Records</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Aspatial_Cases </th>
+   <th style="text-align:left;"> Geospatial_BD </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> BALE KAMBANG </td>
+   <td style="text-align:left;"> BALEKAMBAG </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> HALIM PERDANA KUSUMAH </td>
+   <td style="text-align:left;"> HALIM PERDANA KUSUMA </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> JATI PULO </td>
+   <td style="text-align:left;"> JATIPULO </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> KAMPUNG TENGAH </td>
+   <td style="text-align:left;"> TENGAH </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> KERENDANG </td>
+   <td style="text-align:left;"> KRENDANG </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> KRAMAT JATI </td>
+   <td style="text-align:left;"> KRAMATJATI </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> PAL MERIAM </td>
+   <td style="text-align:left;"> PALMERIAM </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> PINANG RANTI </td>
+   <td style="text-align:left;"> PINANGRANTI </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> RAWA JATI </td>
+   <td style="text-align:left;"> RAWAJATI </td>
+  </tr>
+</tbody>
+</table>
+
+</div>
+</div>
+<p>Correcting the mismatched sub-district records in <code>bd_jakarta</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co"># where bd_jakarta is a mismatched value, replace with the correct value</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'BALEKAMBANG'</span>] <span class="ot">&lt;-</span> <span class="st">'BALE KAMBANG'</span></span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'HALIM PERDANA KUSUMA'</span>] <span class="ot">&lt;-</span> <span class="st">'HALIM PERDANA KUSUMAH'</span></span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'JATIPULO'</span>] <span class="ot">&lt;-</span> <span class="st">'JATI PULO'</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'KALI BARU'</span>] <span class="ot">&lt;-</span> <span class="st">'KALIBARU'</span></span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'TENGAH'</span>] <span class="ot">&lt;-</span> <span class="st">'KAMPUNG TENGAH'</span></span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'KRAMATJATI'</span>] <span class="ot">&lt;-</span> <span class="st">'KRAMAT JATI'</span></span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'KRENDANG'</span>] <span class="ot">&lt;-</span> <span class="st">'KERENDANG'</span></span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'PALMERIAM'</span>] <span class="ot">&lt;-</span> <span class="st">'PAL MERIAM'</span></span>
+<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'PINANGRANTI'</span>] <span class="ot">&lt;-</span> <span class="st">'PINANG RANTI'</span></span>
+<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a>bd_jakarta<span class="sc">$</span>Sub_District[bd_jakarta<span class="sc">$</span>Sub_District <span class="sc">==</span> <span class="st">'RAWAJATI'</span>] <span class="ot">&lt;-</span> <span class="st">'RAWA JATI'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>There are 6 more unique values in <code>vacc_jakarta</code> as those values are data referring to the outer islands looking at the fact that WILAYAH KOTA is not in JAKARTA:</p>
+<p><img src="images/jakarta_outer_islands.png" class="img-fluid"></p>
+<p>Thus, we need to remove the rows with these outer islands data:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>vacc_jakarta <span class="ot">&lt;-</span> vacc_jakarta[<span class="sc">!</span>(vacc_jakarta<span class="sc">$</span>Sub_District<span class="sc">==</span><span class="st">"PULAU HARAPAN"</span> <span class="sc">|</span> vacc_jakarta<span class="sc">$</span>Sub_District<span class="sc">==</span><span class="st">"PULAU KELAPA"</span> <span class="sc">|</span> vacc_jakarta<span class="sc">$</span>Sub_District<span class="sc">==</span><span class="st">"PULAU PANGGANG"</span> <span class="sc">|</span> vacc_jakarta<span class="sc">$</span>Sub_District<span class="sc">==</span><span class="st">"PULAU PARI"</span> <span class="sc">|</span> vacc_jakarta<span class="sc">$</span>Sub_District<span class="sc">==</span><span class="st">"PULAU TIDUNG"</span> <span class="sc">|</span> vacc_jakarta<span class="sc">$</span>Sub_District<span class="sc">==</span><span class="st">"PULAU UNTUNG JAWA"</span>), ]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Re-checking for rows with NA values in <code>vacc_jakarta</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>vacc_jakarta[<span class="fu">rowSums</span>(<span class="fu">is.na</span>(vacc_jakarta))<span class="sc">!=</span><span class="dv">0</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] Date                       Sub_District_Code         
+[3] Sub_District               Target                    
+[5] Not_Yet_Vaccinated         Total_Vaccine_Administered
+&lt;0 rows&gt; (or 0-length row.names)</code></pre>
+</div>
+</div>
+<p>Re-checking for rows with NA values in <code>bd_jakarta</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>bd_jakarta[<span class="fu">rowSums</span>(<span class="fu">is.na</span>(bd_jakarta))<span class="sc">!=</span><span class="dv">0</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 0 features and 9 fields
+Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
+Projected CRS: DGN95 / Indonesia TM-3 zone 54.1
+ [1] Object_ID        Village_Code     Village          Code            
+ [5] Province         City             District         Sub_District    
+ [9] Total_Population geometry        
+&lt;0 rows&gt; (or 0-length row.names)</code></pre>
+</div>
+</div>
+</section>
+<section id="re-joining-the-geospatial-and-aspatial-data-frames-eda" class="level3">
+<h3 class="anchored" data-anchor-id="re-joining-the-geospatial-and-aspatial-data-frames-eda">Re-joining the geospatial and aspatial data frames + EDA</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="co"># joins vacc_jakarta to bd_jakarta based on Sub_District</span></span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>combined_jakarta <span class="ot">&lt;-</span> <span class="fu">left_join</span>(bd_jakarta, vacc_jakarta,</span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">by=</span><span class="fu">c</span>(<span class="st">"Sub_District"</span><span class="ot">=</span><span class="st">"Sub_District"</span>)</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>                              )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Checking for rows with NA values in <code>combined_jakarta</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>combined_jakarta[<span class="fu">rowSums</span>(<span class="fu">is.na</span>(combined_jakarta))<span class="sc">!=</span><span class="dv">0</span>,]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 0 features and 14 fields
+Bounding box:  xmin: NA ymin: NA xmax: NA ymax: NA
+Projected CRS: DGN95 / Indonesia TM-3 zone 54.1
+ [1] Object_ID                  Village_Code              
+ [3] Village                    Code                      
+ [5] Province                   City                      
+ [7] District                   Sub_District              
+ [9] Total_Population           Date                      
+[11] Sub_District_Code          Target                    
+[13] Not_Yet_Vaccinated         Total_Vaccine_Administered
+[15] geometry                  
+&lt;0 rows&gt; (or 0-length row.names)</code></pre>
+</div>
+</div>
+<p>Visualising combined_jakarta in terms of vaccinated and total population again:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>vaccinated <span class="ot">=</span> <span class="fu">tm_shape</span>(combined_jakarta)<span class="sc">+</span></span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"Total_Vaccine_Administered"</span>) <span class="sc">+</span></span>
+<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Updated Vaccinated Count"</span>)</span>
+<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a>total_population <span class="ot">=</span> <span class="fu">tm_shape</span>(combined_jakarta)<span class="sc">+</span></span>
+<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_fill</span>(<span class="st">"Total_Population"</span>) <span class="sc">+</span></span>
+<span id="cb86-8"><a href="#cb86-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_borders</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb86-9"><a href="#cb86-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_layout</span>(<span class="at">main.title=</span><span class="st">"Updated Total Count"</span>)</span>
+<span id="cb86-10"><a href="#cb86-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-11"><a href="#cb86-11" aria-hidden="true" tabindex="-1"></a><span class="fu">tmap_arrange</span>(vaccinated, total_population)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-43-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="calculation-for-vaccination-rate" class="level2">
+<h2 class="anchored" data-anchor-id="calculation-for-vaccination-rate">4.4 Calculation for Vaccination Rate</h2>
+<p>We need to compute the monthly vaccination rate:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="co"># grouping based on the sub-district and date</span></span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the cumulative_case_rate is based on the sum of cases over the total population</span></span>
+<span id="cb87-3"><a href="#cb87-3" aria-hidden="true" tabindex="-1"></a>vacc_rate <span class="ot">&lt;-</span> vacc_jakarta <span class="sc">%&gt;%</span></span>
+<span id="cb87-4"><a href="#cb87-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(bd_jakarta, <span class="at">by=</span><span class="fu">c</span>(<span class="st">"Sub_District"</span> <span class="ot">=</span> <span class="st">"Sub_District"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb87-5"><a href="#cb87-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Sub_District, Date) <span class="sc">%&gt;%</span></span>
+<span id="cb87-6"><a href="#cb87-6" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="st">`</span><span class="at">vacc_rate</span><span class="st">`</span> <span class="ot">=</span> (Total_Vaccine_Administered<span class="sc">/</span>Total_Population)) <span class="sc">%&gt;%</span></span>
+<span id="cb87-7"><a href="#cb87-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb87-8"><a href="#cb87-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">#afterwards, pivots the table based on the Dates, using the cumulative case rate as the values</span></span>
+<span id="cb87-9"><a href="#cb87-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> Date,</span>
+<span id="cb87-10"><a href="#cb87-10" aria-hidden="true" tabindex="-1"></a>              <span class="at">values_from =</span> vacc_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Show Vaccination Rate:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>vacc_rate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 261 x 13
+   Sub_District  2021-~1 2021-~2 2021-~3 2021-~4 2021-~5 2021-~6 2022-~7 2022-~8
+   &lt;chr&gt;           &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+ 1 ANCOL           0.529   0.793   1.03     1.09    1.13    1.17    1.20    1.21
+ 2 ANGKE           0.557   0.808   1.05     1.13    1.17    1.20    1.22    1.23
+ 3 BALE KAMBANG    0.408   0.688   0.983    1.07    1.14    1.18    1.20    1.21
+ 4 BALI MESTER     0.563   0.831   1.10     1.19    1.25    1.28    1.30    1.31
+ 5 BAMBU APUS      0.558   0.849   1.11     1.21    1.27    1.30    1.33    1.33
+ 6 BANGKA          0.576   0.815   1.06     1.16    1.22    1.24    1.26    1.27
+ 7 BARU            0.679   0.931   1.17     1.24    1.29    1.31    1.33    1.34
+ 8 BATU AMPAR      0.447   0.736   0.993    1.08    1.15    1.18    1.21    1.22
+ 9 BENDUNGAN HI~   0.594   0.815   1.07     1.15    1.19    1.22    1.24    1.24
+10 BIDARA CINA     0.451   0.729   1.00     1.08    1.15    1.18    1.20    1.21
+# ... with 251 more rows, 4 more variables: `2022-03-31` &lt;dbl&gt;,
+#   `2022-04-30` &lt;dbl&gt;, `2022-05-31` &lt;dbl&gt;, `2022-06-30` &lt;dbl&gt;, and abbreviated
+#   variable names 1: `2021-07-31`, 2: `2021-08-31`, 3: `2021-09-30`,
+#   4: `2021-10-31`, 5: `2021-11-30`, 6: `2021-12-31`, 7: `2022-01-31`,
+#   8: `2022-02-27`</code></pre>
+</div>
+</div>
+<section id="converting-dataframes-to-sf-objects" class="level3">
+<h3 class="anchored" data-anchor-id="converting-dataframes-to-sf-objects">4.4.1 Converting dataframes to sf objects</h3>
+<p>Before moving on to mapping, we should convert dataframes into sf objects</p>
+<p>Converting <code>combined_jakarta</code> and <code>vacc_rate</code>:</p>
+<div class="cell">
+<details>
+<summary>Show the code!</summary>
+<div class="sourceCode cell-code" id="cb90"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>combined_jakarta <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(combined_jakarta)</span>
+<span id="cb90-2"><a href="#cb90-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb90-3"><a href="#cb90-3" aria-hidden="true" tabindex="-1"></a><span class="co"># need to join our previous dataframes with the geospatial data to ensure that geometry column is present</span></span>
+<span id="cb90-4"><a href="#cb90-4" aria-hidden="true" tabindex="-1"></a>vacc_rate <span class="ot">&lt;-</span> vacc_rate<span class="sc">%&gt;%</span> <span class="fu">left_join</span>(bd_jakarta, <span class="at">by=</span><span class="fu">c</span>(<span class="st">"Sub_District"</span><span class="ot">=</span><span class="st">"Sub_District"</span>))</span>
+<span id="cb90-5"><a href="#cb90-5" aria-hidden="true" tabindex="-1"></a>vacc_rate <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(vacc_rate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </section>
 </section>
 <section id="choropleth-mapping-and-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="choropleth-mapping-and-analysis">4.3 Choropleth Mapping and Analysis</h2>
+<h2 class="anchored" data-anchor-id="choropleth-mapping-and-analysis">4.5 Choropleth Mapping and Analysis</h2>
 </section>
 <section id="local-gi-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="local-gi-analysis">4.4 Local Gi* Analysis</h2>
+<h2 class="anchored" data-anchor-id="local-gi-analysis">4.6 Local Gi* Analysis</h2>
 </section>
 <section id="emerging-hot-spot-analysis-ehsa" class="level2">
-<h2 class="anchored" data-anchor-id="emerging-hot-spot-analysis-ehsa">4.5 Emerging Hot Spot Analysis (EHSA)</h2>
+<h2 class="anchored" data-anchor-id="emerging-hot-spot-analysis-ehsa">4.7 Emerging Hot Spot Analysis (EHSA)</h2>
 </section>
 </section>
 <section id="references" class="level1">
