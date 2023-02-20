@@ -431,7 +431,6 @@ cbg <- gi_stars |>
 -   can choose any County
 
 ```{r}
-#| eval: false
 ggplot(data = cbg,
        aes(x = Year,
            y = gi_star)) +
