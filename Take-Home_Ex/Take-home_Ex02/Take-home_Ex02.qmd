@@ -48,23 +48,18 @@ For the purpose of this study, DKI Jakarta administration boundary 2019 will be 
 ## 4.1 Installing and Loading R packages
 
 -   [sf](https://r-spatial.github.io/sf/): to import, manage, and process geospatial data
-
 -   [tidyverse](https://www.tidyverse.org/): a collection of packages ([readr](https://readr.tidyverse.org/) for importing delimited text file, [tidyr](https://tidyr.tidyverse.org/) for tidying data, [dplyr](https://dplyr.tidyverse.org/) for wrangling data)
-
 -   [tmap](https://cran.r-project.org/web/packages/tmap/): provides functions for plotting cartographic quality static point patterns maps or interactive maps
-
 -   [sfdep](https://cran.r-project.org/web/packages/sfdep/): for spatial dependence of simple features
-
 -   [readxl](https://readxl.tidyverse.org/reference/read_excel.html): for importing Excel worksheets(.xlsx)
-
 -   [plyr](https://cran.r-project.org/package=plyr): for splitting data, applying functions and combining results
-
 -   [kableExtra](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html): for table customisation
+-   [Kendall](https://cran.r-project.org/package=Kendall): for Mann-Kendall Test
 
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
-pacman::p_load(sf, sfdep, readxl, plyr, kableExtra, tmap, tidyverse)
+pacman::p_load(sf, sfdep, readxl, plyr, kableExtra, tmap, Kendall, tidyverse)
 ```
 
 ## 4.2 Data Wrangling: Geospatial Data
@@ -338,7 +333,15 @@ glimpse(jun2022)
 
 ### 4.3.2 Creating an Aspatial Data Pre-processing Function
 
-Firstly, here are some requirements for our aspatial data: Columns of interest: - KODE KELURAHAN: sub-district code - KELURAHAN: sub-district - SASARAN: target - BELUM VAKSIN: not yet vaccinated - TOTAL VAKSIN DIBERIKAN: total vaccine administered
+Firstly, here are some requirements for our aspatial data:
+
+Columns of interest:
+
+-   KODE KELURAHAN: sub-district code
+-   KELURAHAN: sub-district
+-   SASARAN: target
+-   BELUM VAKSIN: not yet vaccinated
+-   TOTAL VAKSIN DIBERIKAN: total vaccine administered
 
 We need to create an extra Date column that has the month and year of the observation. Note that the files have a naming convention "Data Vaksinasi Berbasis Kelurahan (DD Month YYYY).xlsx"
 
@@ -405,7 +408,7 @@ Checking `vacc_jakarta`:
 glimpse(vacc_jakarta)
 ```
 
-### 4.3.4 Formatting Data Column
+### 4.3.4 Formatting Date Column
 
 The Dates are currently in string format as there were derived from the file names, hence we need to convert the Dates into datetime format.
 
@@ -498,29 +501,30 @@ combined_jakarta <- left_join(bd_jakarta, vacc_jakarta,
                               )
 ```
 
-Visualising combined_jakarta in terms of vaccinated and total population:
+Visualising combined_jakarta in terms of vaccine administered and total population:
 
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
-vaccinated = tm_shape(combined_jakarta)+
+
+vaccine_administered = tm_shape(combined_jakarta)+
   tm_fill("Total_Vaccine_Administered") +
   tm_borders(alpha = 0.5) +
-  tm_layout(main.title="Vaccinated Count")
+  tm_layout(main.title="Vaccine Administered Count")
 
 total_population = tm_shape(combined_jakarta)+
   tm_fill("Total_Population") +
   tm_borders(alpha = 0.5) +
   tm_layout(main.title="Total Count")
 
-tmap_arrange(vaccinated, total_population)
+tmap_arrange(vaccine_administered, total_population)
 ```
 
 There are some missing values even though there are no rows with missing values. This could be due to the mismatch in the values due to slightly different namings for the same sub-district when the left join was done.
 
 ### 4.3.2 Identifying Mismatched Sub-District Records
 
-Checking for unique values of Sub-District in vacc_jakarta but not in bd_jakarta and vice versa:
+Checking for unique values of Sub-District in `vacc_jakarta` but not in `bd_jakarta` and vice versa:
 
 ```{r}
 #| code-fold: true
@@ -556,6 +560,7 @@ kable(spelling, caption="Mismatched Records") %>%
 ```
 
 Correcting the mismatched sub-district records in `bd_jakarta`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -572,12 +577,12 @@ bd_jakarta$Sub_District[bd_jakarta$Sub_District == 'PINANGRANTI'] <- 'PINANG RAN
 bd_jakarta$Sub_District[bd_jakarta$Sub_District == 'RAWAJATI'] <- 'RAWA JATI'
 ```
 
-
 There are 6 more unique values in `vacc_jakarta` as those values are data referring to the outer islands looking at the fact that WILAYAH KOTA is not in JAKARTA:
 
 ![](images/jakarta_outer_islands.png)
 
 Thus, we need to remove the rows with these outer islands data:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -585,6 +590,7 @@ vacc_jakarta <- vacc_jakarta[!(vacc_jakarta$Sub_District=="PULAU HARAPAN" | vacc
 ```
 
 Re-checking for rows with NA values in `vacc_jakarta`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -592,14 +598,18 @@ vacc_jakarta[rowSums(is.na(vacc_jakarta))!=0,]
 ```
 
 Re-checking for rows with NA values in `bd_jakarta`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
 bd_jakarta[rowSums(is.na(bd_jakarta))!=0,]
 ```
 
-### Re-joining the geospatial and aspatial data frames + EDA
+### 4.3.3 Re-joining the geospatial and aspatial data frames + EDA
+
 ```{r}
+#| code-fold: true
+#| code-summary: Show the code!
 # joins vacc_jakarta to bd_jakarta based on Sub_District
 combined_jakarta <- left_join(bd_jakarta, vacc_jakarta,
                               by=c("Sub_District"="Sub_District")
@@ -607,32 +617,35 @@ combined_jakarta <- left_join(bd_jakarta, vacc_jakarta,
 ```
 
 Checking for rows with NA values in `combined_jakarta`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
 combined_jakarta[rowSums(is.na(combined_jakarta))!=0,]
 ```
 
-Visualising combined_jakarta in terms of vaccinated and total population again:
+Visualising combined_jakarta in terms of vaccine administered and total population again:
 
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
-vaccinated = tm_shape(combined_jakarta)+
+vaccine_administered = tm_shape(combined_jakarta)+
   tm_fill("Total_Vaccine_Administered") +
   tm_borders(alpha = 0.5) +
-  tm_layout(main.title="Updated Vaccinated Count")
+  tm_layout(main.title="Updated Vaccine Administered Count")
 
 total_population = tm_shape(combined_jakarta)+
   tm_fill("Total_Population") +
   tm_borders(alpha = 0.5) +
   tm_layout(main.title="Updated Total Count")
 
-tmap_arrange(vaccinated, total_population)
+tmap_arrange(vaccine_administered, total_population)
 ```
 
 ## 4.4 Calculation for Vaccination Rate
-We need to compute the monthly vaccination rate:
+
+We need to compute the monthly vaccination rate: vaccination rate (in %) = (total population - number of people not vaccinated yet) / total population \* 100
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -641,7 +654,7 @@ We need to compute the monthly vaccination rate:
 vacc_rate <- vacc_jakarta %>%
   inner_join(bd_jakarta, by=c("Sub_District" = "Sub_District")) %>%
   group_by(Sub_District, Date) %>%
-  dplyr::summarise(`vacc_rate` = (Total_Vaccine_Administered/Total_Population)) %>%
+  dplyr::summarise(`vacc_rate` = ((Total_Population-Not_Yet_Vaccinated)/Total_Population)*100) %>%
   
   #afterwards, pivots the table based on the Dates, using the cumulative case rate as the values
   ungroup() %>% pivot_wider(names_from = Date,
@@ -649,6 +662,7 @@ vacc_rate <- vacc_jakarta %>%
 ```
 
 Show Vaccination Rate:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -656,9 +670,11 @@ vacc_rate
 ```
 
 ### 4.4.1 Converting dataframes to sf objects
+
 Before moving on to mapping, we should convert dataframes into sf objects
 
 Converting `combined_jakarta` and `vacc_rate`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -669,11 +685,370 @@ vacc_rate <- vacc_rate%>% left_join(bd_jakarta, by=c("Sub_District"="Sub_Distric
 vacc_rate <- st_as_sf(vacc_rate)
 ```
 
-
 ## 4.5 Choropleth Mapping and Analysis
+
+There are different data classifications to choropleth maps like equal intervals, quantile, jenks and standard deviation. I have decided to use Jenks as it minimises variation in each class. It will be able to find suitable class ranges and also group outliers in a class of its own.
+
+### 4.5.1 Jenks Choropleth Map
+
+As we do not want too many classes, we will use 6 classes as it seems to be the optimum number to view different classes and we will be able to differentiate between the classes without straining our eyes.
+
+Map for Jul 2021:
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# using the jenks method, with 6 classes
+tmap_mode("plot")
+tm_shape(vacc_rate)+
+  tm_fill("2021-07-31", 
+          n= 6,
+          style = "jenks", 
+          title = "Vaccination Rate") +
+  tm_layout(main.title = "Distribution of Vaccination Rate in July 2021",
+            main.title.position = "center",
+            main.title.size = 1,
+            legend.height = 0.5, 
+            legend.width = 0.4,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5)
+```
+
+Introducing a helper function to help us plot the maps for all 12 months:
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+# input: the dataframe and the variable name - in this case, the month 
+# with style="jenks" for the jenks classification method
+jenks_plot <- function(df, varname) {
+  tm_shape(vacc_rate) +
+    tm_polygons() +
+  tm_shape(df) +
+    tm_fill(varname, 
+          n= 6,
+          style = "jenks", 
+          title = "Vaccination Rate") +
+    tm_layout(main.title = varname,
+          main.title.position = "center",
+          main.title.size = 1.2,
+          legend.height = 0.45, 
+          legend.width = 0.35,
+          frame = TRUE) +
+    tm_borders(alpha = 0.5)
+}
+```
+
+Visualising the Jenks Maps for all 12 months:
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+tmap_mode("plot")
+tmap_arrange(jenks_plot(vacc_rate, "2021-07-31"),
+             jenks_plot(vacc_rate, "2021-08-31"),
+             jenks_plot(vacc_rate, "2021-09-30"),
+             jenks_plot(vacc_rate, "2021-10-31"))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+tmap_mode("plot")
+tmap_arrange(jenks_plot(vacc_rate, "2021-11-30"),
+             jenks_plot(vacc_rate, "2021-12-31"),
+             jenks_plot(vacc_rate, "2022-01-31"),
+             jenks_plot(vacc_rate, "2022-02-27"))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+tmap_mode("plot")
+tmap_arrange(jenks_plot(vacc_rate, "2022-03-31"),
+             jenks_plot(vacc_rate, "2022-04-30"),
+             jenks_plot(vacc_rate, "2022-05-31"),
+             jenks_plot(vacc_rate, "2022-06-30"))
+```
+
+### 4.5.2 Observations from Jenks Choropleth Maps
+
+For each map, they have their own relative vaccination rate as the range for each map differs. Hence, we cannot rely on the colour scale for each map to compare between the months as it would not be fair.
+
+However, we are able to compare each month individually and see that typically for each month, the higher vaccination rates are at the central area and southern area.
+
+Some other analysis can be done like the sub-district with the highest vaccination rate and the sub-district with the lowest vaccination rate for each month:
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#highest vaccination rate for each month
+vacc_rate$Sub_District[which.max(vacc_rate$`2021-07-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2021-08-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2021-09-30`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2021-10-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2021-11-30`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2021-12-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2022-01-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2022-02-27`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2022-03-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2022-04-30`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2022-05-31`)]
+vacc_rate$Sub_District[which.max(vacc_rate$`2022-06-30`)]
+```
+
+From this, we can tell that the sub-district "HALIM PERDANA KUSMAH" consistently has the highest vaccination rate except for 1 month in Aug 2021.
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#lowest vaccination rate for each month
+vacc_rate$Sub_District[which.min(vacc_rate$`2021-07-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2021-08-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2021-09-30`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2021-10-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2021-11-30`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2021-12-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2022-01-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2022-02-27`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2022-03-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2022-04-30`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2022-05-31`)]
+vacc_rate$Sub_District[which.min(vacc_rate$`2022-06-30`)]
+```
+
+From this, we can tell that initially the sub-district "BALE KAMBANG" had the lowest vaccination rate from July 2021 to August 2021, but their vaccination rate improved over the months such that "KALIBARU" was identified as the sub-district with the lowest vaccination rate from September 2021 to January 2022 with the exception of December 2021. Then, "KEBON MELATI" became the sub-district with the lowest vaccination rate from December 2021 to June 2022 with the exception of January 2022.
+
+### 4.5.3 Spatio-Temporal Mapping with custom breakpoints
+
+In the above section, each month had their own vaccination rate. To compare with the vaccination rate between months and see the spatio-temporal progression of the vaccination rates, we should set a fixed range.
+
+To do so, we have to customise the breakpoints and following the above section, we will define 6 breakpoints.
+
+First, we require the maximum vaccination rate which would be from the latest month (June 2022):
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+max(vacc_rate$`2022-06-30`)
+```
+
+Now, we can define the 6 breakpoints based on the jenks breaks ranges from the above section:
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+breakpoints = c(48, 65, 72, 82, 86, 92)
+```
+
+Creating a helper function for break plot:
+
+```{r}
+break_plot <- function(df, varname) {
+  tm_shape(vacc_rate) +
+    tm_polygons() +
+  tm_shape(df) +
+    tm_fill(varname, 
+          breaks= breakpoints,
+          title = "Vaccination Rate") +
+    tm_layout(main.title = varname,
+          main.title.position = "center",
+          main.title.size = 1.2,
+          legend.height = 0.45, 
+          legend.width = 0.35,
+          frame = TRUE) +
+    tm_borders(alpha = 0.5)
+}
+```
+
+Plotting the custom break plots for each month:
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+tmap_mode("plot")
+tmap_arrange(break_plot(vacc_rate, "2021-07-31"),
+             break_plot(vacc_rate, "2021-08-31"),
+             break_plot(vacc_rate, "2021-09-30"),
+             break_plot(vacc_rate, "2021-10-31"))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+tmap_mode("plot")
+tmap_arrange(break_plot(vacc_rate, "2021-11-30"),
+             break_plot(vacc_rate, "2021-12-31"),
+             break_plot(vacc_rate, "2022-01-31"),
+             break_plot(vacc_rate, "2022-02-27"))
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+tmap_mode("plot")
+tmap_arrange(break_plot(vacc_rate, "2022-03-31"),
+             break_plot(vacc_rate, "2022-04-30"),
+             break_plot(vacc_rate, "2022-05-31"),
+             break_plot(vacc_rate, "2022-06-30"))
+```
+
+### 4.5.4 Observations from Custom Breakplot Maps
+
+![](images/ezgif.com-gif-maker.gif)
+
+At the start, in July 2021 and August 2021, there is a slightly higher vaccination rate at the Northern area compared to the other areas given its slightly darker shade of yellow.
+
+However as time passes, from September 2021 to October 2021, the increase in the vaccination rate becomes more evenly spread and there is not much obvious difference other than a few sub-districts here and there.
+
+Specifically sub-district "HALIM PERDANA KUSUMAH" is obvious to the eye with its consistently high rate and darker shade.
+
+From November 2021 to February 2022, the increase in vaccination rate is faster at the Southern area and the Northern Central Area then sub-districts at the Northern border start to catch up.
+
+(Supplementing the previous observations in section 4.5.2, the general increasing trend happens at the Southern and Central area.)
+
+From March 2022 to June 2022, we can see the sub-districts at the Northern border as well as some sub-districts in the central area increasing their vaccination rates.
 
 ## 4.6 Local Gi\* Analysis
 
+### 4.6.1 Computing local Gi* values of the monthly vaccination rate
+```{r}
+wm_q <- combined_jakarta %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb, style='W'),
+         .before=1)
+```
+
+```{r}
+set.seed(1234)
+```
+
+```{r}
+HCSA <- wm_q %>%
+  mutate(local_Gi = local_gstar_perm(
+    ((Total_Population-Not_Yet_Vaccinated)/Total_Population*100), nb, wt, nsim=99),
+    .before=1) %>%
+  unnest(local_Gi)
+HCSA
+```
+
+
+### 4.6.2 Displaying the Gi* maps of the monthly vaccination rate
+
+Visualising Gi*:
+```{r}
+tmap_mode("view")
+tm_shape(HCSA) +
+  tm_fill("gi_star") +
+  tm_borders(alpha=0.5) + 
+  tm_view(set.zoom.limits = c(10,16))
+```
+
+Visualising p-value of HCSA:
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("p_sim") +
+  tm_borders(alpha=0.5) + 
+  tm_view(set.zoom.limits = c(10,16))
+```
+
+
+### 4.6.3 Statistical conclusions
+
+
 ## 4.7 Emerging Hot Spot Analysis (EHSA)
+
+Making an attribute table:
+```{r}
+# make new vaccination attribute table with Date, Sub_District, Total_Population, Not_Yet_Vaccinated
+vacc_attribute_table <- combined_jakarta %>% select(10, 8, 9, 13) %>% st_drop_geometry()
+
+# add a new field for Vaccination_Rate
+vacc_attribute_table$Vaccination_Rate <- (vacc_attribute_table$Total_Population - vacc_attribute_table$Not_Yet_Vaccinated) / vacc_attribute_table$Total_Population*100
+
+# final vaccination attribute table with Date, Sub_District, Vaccination_Rate
+vacc_attribute_table <- tibble(vacc_attribute_table %>% select(1,2,5))
+```
+
+Display attribute table details:
+```{r}
+vacc_attribute_table
+```
+
+Creating a time series cube:
+```{r}
+vacc_rate_st <- spacetime(vacc_attribute_table, bd_jakarta,
+                          .loc_col = "Sub_District",
+                          .time_col = "Date")
+```
+
+```{r}
+vacc_rate_st
+```
+
+```{r}
+vacc_rate_nb <- vacc_rate_st %>%
+  activate("geometry") %>%
+  mutate(nb = include_self(st_contiguity(geometry)),
+         wt = st_weights(nb)
+         ) %>%
+  set_nbs("nb") %>%
+  set_wts("wt")
+```
+
+Computing Gi*:
+```{r}
+gi_stars <- vacc_rate_nb |>
+  group_by(Date) |>
+  mutate(gi_star = local_gstar_perm(
+    Vaccination_Rate, nb, wt, nsim=99)) |>
+      tidyr::unnest(gi_star)
+```
+
+```{r}
+gi_stars
+```
+
+
+### 4.7.1 Mann-Kendall Test
+
+```{r}
+chg <- gi_stars |>
+  ungroup() |>
+  filter(Sub_District == "HALIM PERDANA KUSUMAH") |>
+  select(Sub_District, Date, gi_star)
+```
+
+```{r}
+chg
+```
+
+
+```{r}
+ggplot(data = chg,
+       aes(x = Date,
+           y = gi_star)) + 
+  geom_line() + 
+  theme_light()
+```
+
+
+### 4.7.2 EHSA map of the Gi* values of the vaccination rate
+```{r}
+ehsa <- emerging_hotspot_analysis(
+  x = vacc_rate_st,
+  .var = "Vaccination_Rate",
+  k = 1,
+  nsim = 99
+)
+```
+
+```{r}
+ggplot(data = ehsa,
+       aes(x=classification)) + 
+  geom_bar()
+```
+
 
 # 5 References
