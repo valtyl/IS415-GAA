@@ -1,0 +1,350 @@
+---
+title: "In-class Exercise 7: Global and Local Spatial Autocorrelation "
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "20 February 2023"
+date-modified: "`r Sys.Date()`"
+# number-sections: true
+editor: visual
+format: html
+---
+
+# 1 Overview
+
+# 2 Getting Started
+
+## 2.1 Installing and Loading the R packages
+
+```{r}
+pacman::p_load(sf, sfdep, tmap, tidyverse)
+```
+
+# 3 The Data
+
+## 3.1 Importing geospatial data
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+## 3.2 Importing attribute table
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+## 3.3 Combining both data frame by using a left join
+
+```{r}
+hunan_GDPPC <- left_join(hunan, hunan2012) %>% 
+  select(1:4, 7, 15)
+```
+
+## 3.4 Plotting a choropleth map
+
+```{r}
+tmap_mode("plot")
+tm_shape(hunan_GDPPC)+
+  tm_fill("GDPPC", 
+          style = "quantile", 
+          palette = "Blues",
+          title = "GDPPC") +
+  tm_layout(main.title = "Distribution of GDP per capita by district, Hunan Province",
+            main.title.position = "center",
+            main.title.size = 1.0,
+            legend.height = 0.40, 
+            legend.width = 0.30,
+            frame = TRUE) +
+  tm_borders(alpha = 0.5) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar() +
+  tm_grid(alpha =0.2)
+```
+
+# 4 Global Measures of Spatial Association
+
+## 4.1 Deriving contiguity weights: Queen's method
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb, style='W'),
+         .before = 1)
+```
+
+## 4.2 Computing Global Moran's I
+
+```{r}
+moranI <- global_moran(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt)
+```
+
+## 4.3 Performing Global Moran's I Test
+
+```{r}
+global_moran_test(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt)
+```
+
+-   we can reject null hypothesis that the observed pattern is spatial independent, meaning that it is actually dependent
+-   Moran I stats \> 0 meaning clustered, observations tend to be similar
+-   this uses raw data
+
+## 4.4 Performing Global Moran's I Permutation Test
+
+```{r}
+set.seed(1234)
+```
+
+-   set the seed value (just at the v beginning of permutations/simulations) so that the results will always be reproducible and constant
+
+```{r}
+global_moran_perm(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt,
+                  nsim=99)
+```
+
+-   this is simulations not raw data
+-   Moran's I test statistic is quite similar to section 4.3 but p-value here is more significant
+-   simulations always give 2 sided test
+
+# 5 Computing local Moran's I
+
+```{r}
+lisa <- wm_q %>%
+  mutate(local_moran = local_moran(
+    GDPPC, nb, wt, nsim =99), 
+    .before = 1) %>%
+  unnest(local_moran)
+lisa
+```
+
+-   unnest() is needed
+-   in the lisa df output:
+    -   ii = local moran stats
+
+    -   eii = standard error deviation
+
+    -   var_ii = variance
+
+    -   z = standard value
+
+    -   p = p value
+
+    -   p_ii_sim = p value based on simulations
+
+    -   p_folded_sim = p value based on k fold methods and simulations
+
+    -   mean = provides the labels of the clusters using R
+
+    -   pysal = labels of the clusters using a python script
+
+    -   median = labels of the clusters with non-parametric version
+
+    -   in general mean & pysal should be the same (use either, can just use mean)
+
+## 5.1 Visualising local Moran's I
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) + 
+  tm_fill("ii") + 
+  tm_borders(alpha=0.5) +
+  tm_view(set.zoom.limits = c(6,8))
+```
+
+-   
+
+## 5.2 Visualising p-value of local Moran's I
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) + 
+  tm_fill("p_ii") + 
+  tm_borders(alpha=0.5) +
+  tm_view(set.zoom.limits = c(6,8))
+```
+
+
+```{r}
+tmap_mode("plot")
+tm_shape(lisa) + 
+  tm_fill("p_ii_sim") + 
+  tm_borders(alpha=0.5) +
+  tm_view(set.zoom.limits = c(6,8))
+```
+
+-   should actually use p_ii_sim instead of p_ii
+-   p_ii is only based on the raw data u use
+-   p_ii_sim / p_folded_sim is based on simulations (just use p_ii_sim)
+
+
+# 6 Visualising local Moran's I
+```{r}
+lisa_sig <- lisa %>%
+  filter(p_ii < 0.05)
+tmap_mode("plot")
+tm_shape(lisa) + 
+  tm_polygons() + 
+  tm_borders(alpha=0.5) +
+tm_shape(lisa_sig) + 
+  tm_fill("mean") +
+  tm_borders(alpha=0.4)
+```
+-   modify the code to include a class called "not significant" (refer to section 10.7.4 
+
+## 6.1 Deriving contiguity weights: Rooks method
+```{r}
+
+```
+
+
+
+# 7 Distance-based Weights
+
+# 8 Deriving
+
+
+# HCSA
+
+## Hot and Cold Spot Analysis
+```{r}
+HCSA <- wm_q %>%
+  mutate(local_Gi = local_gstar_perm(
+    GDPPC, nb, wt, nsim=99),
+      .before=1) %>%
+  unnest(local_Gi)
+HCSA
+```
+-   in general, we will use g star not g
+-   g star perm means run simulations, g star just runs once
+
+
+## Visualising Gi*
+```{r}
+tmap_mode("view")
+tm_shape(HCSA) +
+  tm_fill("gi_star") +
+  tm_borders(alpha=0.5) + 
+  tm_view(set.zoom.limits = c(6,8))
+```
+
+## Visualising p-value of HCSA
+```{r}
+tmap_mode("plot")
+tm_shape(HCSA) +
+  tm_fill("p_sim") +
+  tm_borders(alpha=0.5) + 
+  tm_view(set.zoom.limits = c(6,8))
+```
+
+# Emerging Hot Spot Analysis
+The data must be organised in the following form: 1 col year, 1 col location, 1 col for the value like Hunan_GDPPC.csv.
+
+To organise the data, can look at Megan's report
+
+## Installing and Loading the R packages
+```{r}
+pacman::p_load(sf, sfdep, tmap, plotly, tidyverse, zoo)
+```
+-   plotly to make the graph interactive "ggplotly(plot)"
+
+## Import the geospatial data
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+## Import attribute table
+```{r}
+GDPPC <- read_csv("data/aspatial/Hunan_GDPPC.csv")
+```
+
+
+## Creating a time series cube
+```{r}
+GDPPC_st <- spacetime(GDPPC, hunan,
+                      .loc_col = "County",
+                      .time_col = "Year")
+```
+-   spacetime takes in spatial data on the left, attribute info on the right gets combined & need to tell explicitly which field is location, which field is time
+
+```{r}
+GDPPC_st
+```
+-   has the aspatial df & geometry field
+
+```{r}
+GDPPC_nb <- GDPPC_st %>%
+  activate("geometry") %>%
+  mutate(
+    nb = include_self(st_contiguity(geometry)),
+    wt = st_weights(nb)
+  ) %>%
+  set_nbs("nb") %>%
+  set_wts("wt")
+```
+-   
+
+### Computing Gi*
+```{r}
+gi_stars <- GDPPC_nb %>%
+  group_by(Year) %>%
+  mutate(gi_star = local_gstar_perm(
+    GDPPC, nb, wt, nsim=99) %>%
+      tidyr::unnest(gi_star))
+```
+
+
+## Mann Kendall Test
+```{r}
+#| eval: false
+chg <- gi_stars %>%
+  ungroup() %>%
+  filter(County == "Changsha") %>%
+  select(County, Year, gi_stars)
+
+  
+```
+-   can choose any County
+
+```{r}
+#| eval: false
+ggplot(data = chg,
+       aes(x = Year,
+           y = gi_star)) + 
+  geom_line() + 
+  theme_light()
+```
+
+## Performing Emerging Hotspot Analysis
+```{r}
+#| eval: false
+ehsa <- emerging_hotspot_analysis(
+  x = GDPPC_st,
+  .var = "GDPPC",
+  k = 1,
+  nsim = 99
+)
+```
+
+```{r}
+#| eval: false
+ggplot(data = ehsa,
+       aes(x=classification)) + 
+  geom_bar()
+```
+
+
+
+```{r}
+# p <- ggplot(data = cbg,
+#             aes(x = Year))
+```
+
+
