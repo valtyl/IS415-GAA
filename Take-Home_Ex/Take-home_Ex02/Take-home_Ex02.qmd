@@ -1191,9 +1191,17 @@ num_of_times = filter(combined_jakarta_gi_stars, p_sim<0.05)
 as.data.frame(table(num_of_times$Sub_District))
 ```
 
+Here is a gif to show how the Gi\* values and their p-values change over time
+
+![](images/ezgif.com-gif-maker%20(2).gif){fig-align="center"}
+
+We can tell that from July 2021 to September 2021, the areas of significant p-values seem to be around the Northern and Central areas.
+
+From October 2021 to June 2022, the North-East, Central and Southern areas seem to be the locations with significant p-values instead.
+
 ### 4.6.3 Statistical conclusions
 
-For the Sub-Districts with p-value of Gi\* \< 0.05, the Gi\* values of the monthly vaccination rates of these locations are significant.
+For the Sub-Districts with p-value of Gi\* \< 0.05, the Gi\* values of the monthly vaccination rates of these locations are significant. The Gi\* values of these locations are either significantly high (around 2 to 6) or significantly low (around -2 to -6).
 
 Throughout the 12 months, there were 128 Sub-Districts with at least 1 month of having a significant Gi\* value.
 
