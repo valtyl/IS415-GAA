@@ -1,0 +1,15 @@
+---
+title: "In-class Exercise 8: Global and Local Spatial Autocorrelation "
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "6 March 2023"
+date-modified: "`r Sys.Date()`"
+# number-sections: true
+editor: visual
+format: html
+---
+
+# 1 Overview
