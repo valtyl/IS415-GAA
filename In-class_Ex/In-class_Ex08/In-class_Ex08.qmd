@@ -13,3 +13,21 @@ format: html
 ---
 
 # 1 Overview
+
+# 2 The Data
+
+# 3 Getting Started
+```{r}
+# install corrplot manually
+pacman::p_load(olsrr, readr, ggpubr, sf, spdep, GWmodel, tmap, tidyr, dyplr, tidyverse, gtsummary)
+```
+
+```{r}
+mpsz = st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL") %>% st_transform(crs=3414)
+```
+
+```{r}
+condo_resale = read_csv("data/aspatial/Condo_resale_2015.csv")
+```
+
+
