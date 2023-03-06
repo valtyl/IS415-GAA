@@ -1,0 +1,15 @@
+---
+title: "Hands-on Exercise 7: Global and Local Measures of Spatial Autocorrelation"
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "19 February 2023"
+date-modified: "`r Sys.Date()`"
+# number-sections: true
+editor: visual
+format: html
+---
+
+# 7.1 Overview
