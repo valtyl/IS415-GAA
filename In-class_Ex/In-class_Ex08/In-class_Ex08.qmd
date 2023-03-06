@@ -30,4 +30,27 @@ mpsz = st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL") %>% st_tr
 condo_resale = read_csv("data/aspatial/Condo_resale_2015.csv")
 ```
 
+```{r}
+dplyr::glimpse(condo_resale)
+```
+
+```{r}
+summary(condo_resale)
+```
+
+```{r}
+condo_resale.sf <- st_as_sf(condo_resale,
+                            coords = c("LONGITUDE", "LATITUDE"),
+                            crs=4326) %>%
+  st_transform(crs=3414)
+```
+
+```{r}
+condo_resale.sf <- condo_resale.sf %>%
+  dplyr::mutate(`LOG_SELLING_PRICE` = log(SELLING_PRICE))
+```
+
+```{r}
+condo.slr <- lm(formula=SELLING_PRICE ~ AREA_SQM, data = condo_resale.sf)
+```
 

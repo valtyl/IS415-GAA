@@ -162,7 +162,6 @@ summary(childcare_ppp)
 
 Notice the warning message about duplicates. In spatial point patterns analysis an issue of significant is the presence of duplicates. The statistical methodology used for spatial point patterns processes is based largely on the assumption that process are simple, that is, that the points cannot be coincident.
 
-
 ## 1.5.4 Handling duplicated points
 
 We can check the duplication in a **ppp** object by using the code chunk below.
