@@ -1588,6 +1588,7 @@ test_data <- subset(test_data, select = -c(unit_age))
 ### 4.4.4 Prediction with a Non-Spatial Multiple Linear Regression
 
 #### 4.4.4.1 Build the OLS Model
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1612,6 +1613,7 @@ write_rds(price_mlr, "data/model/price_mlr.rds" )
 ```
 
 Retrieving the multiple linear regression model:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1620,7 +1622,9 @@ price_mlr <- read_rds("data/model/price_mlr.rds")
 ```
 
 #### 4.4.4.2 Predict by Using Test Data and OLS Model
+
 To predict using the test data, we will use [`predict.lm()`](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/predict.lm) of Base Stats
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1629,6 +1633,7 @@ mlr_pred <- predict.lm(price_mlr, test_data)
 ```
 
 Saving the prediction output into an RDS file:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1637,6 +1642,7 @@ OLS_pred <- write_rds(mlr_pred, "data/model/OLS_pred.rds")
 ```
 
 Converting the saved predicted output into a dataframe for further visualisation and analysis:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1646,6 +1652,7 @@ OLS_pred_df <- as.data.frame(OLS_pred)
 ```
 
 Using `cbind()` to append the predicted values onto the `test_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1654,6 +1661,7 @@ test_data_p <- cbind(test_data, OLS_pred_df)
 ```
 
 Saving the `test_data` with the predicted values in an RDS file:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1662,7 +1670,9 @@ write_rds(test_data_p, "data/model/test_data_p_OLS.rds")
 ```
 
 #### 4.4.4.3 Visualise the Predicted Values by OLS Model
+
 Reading the saved `test_data` with predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1672,6 +1682,7 @@ test_data_p <- read_rds("data/model/test_data_p_OLS.rds")
 Next we will calculate the root mean square error (RMSE). RMSE allows us to measure how far predicted values are from observed values in a regression analysis. In the code chunk below, `rmse()` of Metrics package is used to compute the RMSE.
 
 Calculate Root Mean Square Error:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1680,6 +1691,7 @@ rmse(test_data_p$price,
 ```
 
 Visualising the predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1691,7 +1703,6 @@ ggplot(data = test_data_p,
 
 A better predictive model should have the scatter point close to the diagonal line. The scatter plot can be also used to detect if any outliers in the model.
 
-
 ### 4.4.5 Geographically Weighted Regression Predictive Method
 
 Now, we will calibrate a model to predict HDB resale prices by using geographically weighted regression method of GWmodel package.
@@ -1699,6 +1710,7 @@ Now, we will calibrate a model to predict HDB resale prices by using geographica
 #### 4.4.5.1 Convert sf data.frame to SpatialPointDataFrame
 
 Converting for `train_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1707,6 +1719,7 @@ train_data_sp
 ```
 
 Converting for `test_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1799,7 +1812,9 @@ gwr_adaptive
 ```
 
 #### 4.4.5.4 Predict by Using Test Data and GWR Model
+
 To predict the test data, we will use [`gwr.predict()`](https://www.rdocumentation.org/packages/GWmodel/versions/2.2-9/topics/gwr.predict):
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1819,6 +1834,7 @@ gwr_pred <- gwr.predict(formula = price ~ area_sqm +
 ```
 
 Saving the prediction output into an RDS file:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1827,6 +1843,7 @@ GWR_pred <- write_rds(gwr_pred, "data/model/GWR_pred.rds")
 ```
 
 Converting the saved predicted output into a dataframe for further visualisation and analysis:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1836,6 +1853,7 @@ GWR_pred_df <- as.data.frame(GWR_pred$SDF$prediction)
 ```
 
 Using `cbind()` to append the predicted values onto the `test_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1844,6 +1862,7 @@ test_data_p <- cbind(test_data, GWR_pred_df)
 ```
 
 Saving the `test_data` with the predicted values in an RDS file:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1852,7 +1871,9 @@ write_rds(test_data_p, "data/model/test_data_p_GWR.rds")
 ```
 
 #### 4.5.5.5 Visualise the Predicted Values
+
 Reading the saved `test_data` with predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1860,6 +1881,7 @@ test_data_p <- read_rds("data/model/test_data_p_GWR.rds")
 ```
 
 Calculate Root Mean Square Error:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1868,6 +1890,7 @@ rmse(test_data_p$price,
 ```
 
 Visualising the predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1879,8 +1902,8 @@ ggplot(data = test_data_p,
 
 Comparing this to the OLS predictive model results in section 4.4.4.3, the points are closer to the diagonal line which means that it is a better model compared to the OLS model.
 
-
 ### 4.4.6 Prepare Coordinates Data
+
 We need to prepare the coordinates data for the calibration of the Random Forest Model and Geographical Random Forest Model.
 
 #### 4.4.6.1 Extract Coordinates Data
@@ -1915,9 +1938,11 @@ coords_test <- read_rds("data/model/coords_test.rds")
 ```
 
 #### 4.4.6.2 Drop Geometry Field
+
 Drop the geometry column of the sf data.frame using `st_drop_geometry()` of sf.
 
 Dropping geometry for `train_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1926,6 +1951,7 @@ train_data <- train_data %>%
 ```
 
 Dropping geometry for `test_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1936,6 +1962,7 @@ test_data <- test_data %>%
 ### 4.4.7 Prediction with Random Forest Model
 
 #### 4.4.7.1 Calibrate Random Forest Model
+
 In this section, we will calibrate a model to predict HDB resale prices using the random forest function of ranger package
 
 ```{r}
@@ -1961,7 +1988,9 @@ print(rf)
 ```
 
 #### 4.4.7.2 Predict by Using Test Data and Random Forest Model
+
 To predict the test data, we will use [`predict()`](https://www.rdocumentation.org/packages/ranger/versions/0.14.1/topics/predict.ranger):
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1970,6 +1999,7 @@ rf_pred <- predict(rf, test_data)
 ```
 
 Saving the prediction output into an RDS file:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1978,6 +2008,7 @@ RF_pred <- write_rds(rf_pred, "data/model/RF_pred.rds")
 ```
 
 Converting the saved predicted output into a dataframe for further visualisation and analysis:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1987,6 +2018,7 @@ RF_pred_df <- as.data.frame(RF_pred$predictions)
 ```
 
 Using `cbind()` to append the predicted values onto the `test_data`:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -1995,6 +2027,7 @@ test_data_p <- cbind(test_data, RF_pred_df)
 ```
 
 Saving the `test_data` with the predicted values in an RDS file:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2003,7 +2036,9 @@ write_rds(test_data_p, "data/model/test_data_p_RF.rds")
 ```
 
 #### 4.4.7.3 Visualise the Predicted Values
+
 Reading the saved `test_data` with predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2011,6 +2046,7 @@ test_data_p <- read_rds("data/model/test_data_p_RF.rds")
 ```
 
 Calculate Root Mean Square Error:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2019,6 +2055,7 @@ rmse(test_data_p$price,
 ```
 
 Visualising the predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2028,7 +2065,7 @@ ggplot(data = test_data_p,
   geom_point()
 ```
 
-Comparing this to the GWR predictive model results in section 4.5.5.5, the points are closer to the diagonal line which means that is it a better model compared to the GWR predictive model. Hence it is also better than the OLS model.
+Comparing this to the GWR predictive model results in section 4.5.5.5, the points are not as close to the diagonal line which means that it is not a better model compared to the GWR predictive model. However, the results are comparable. It might not be better than GWR predictive model but it is better than the OLS model.
 
 ### 4.4.8 Prediction with Geographical Random Forest Model
 
@@ -2037,11 +2074,11 @@ In this section, we will calibrate a model to predict HDB resale price by using 
 #### 4.4.8.1 Calibrate Geographical Random Forest Model
 
 Before we calibrate the geographical random forest model, we will use [`grf.bw()`](https://search.r-project.org/CRAN/refmans/SpatialML/html/grf.bw.html) of SpatialML to determine the optimal bandwidth to be used:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
 #| eval: false
-# NEED TO RUN
 bwRF_adaptive <- grf.bw(formula = price ~ area_sqm + 
                      storey_order + remain_months +
                      PROX_CBD + PROX_ELDER + PROX_HAWK +
@@ -2055,13 +2092,24 @@ bwRF_adaptive <- grf.bw(formula = price ~ area_sqm +
                      trees=30)
 ```
 
---------- stopped running here -----------
-see if need to do diff kernels, look at in class ex 9 notes
-XXXXXXXXXX insert result
+![](images/gaa-ass3-10.jpg){fig-align="center" width="247"}
 
-This result shows that XXXX neighbour points will be the optimal bandwidth to be used for the geographical random forest model.
+![](images/gaa-ass3-11.jpg){fig-align="center" width="247"}
 
-Saving the bandwidth in an RDS file as the code takes some time to run:
+![](images/gaa-ass3-12.jpg){fig-align="center" width="255"}
+
+![](images/gaa-ass3-13.jpg){fig-align="center" width="257"}
+
+The model ran on training data with 23657 observations. From the 74 bandwidths ran over 2 days, by observation, we can see that the R square value of Local Model stays around the 0.84-0.85 range. We have ran sufficient bandwidths for this large dataset to see that the optimal bandwidth will be around 0.84-0.85 as well. Thus, we can stop the model from running further due to time constraints, and identify the bandwidth with the highest R square value.
+
+The bandwidth with the highest R square value among the 74 bandwidths is 1201 where the R square value is 0.8544 (4dp).
+
+We will take 1201 as the optimal bandwidth and proceed further.
+
+This result shows that 1201 neighbour points will be the optimal bandwidth to be used for the geographical random forest model.
+
+(Run this code if optimal bandwidth is calculated) Saving the bandwidth in an RDS file as the code takes some time to run:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2070,16 +2118,14 @@ Saving the bandwidth in an RDS file as the code takes some time to run:
 write_rds(bwRF_adaptive, "data/model/bwRF_adaptive.rds")
 ```
 
+(Run this code if optimal bandwidth is calculated) Calling the saved bandwidth:
 
-Calling the saved bandwidth:
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
 #| eval: false
-# NEED TO RUN
 bwRF_adaptive <- read_rds("data/model/bwRF_adaptive.rds")
 ```
-
 
 Calibrating a random forest model with the saved bandwidth using [`grf()`](https://search.r-project.org/CRAN/refmans/SpatialML/html/grf.html) of SpatialML:
 
@@ -2087,7 +2133,6 @@ Calibrating a random forest model with the saved bandwidth using [`grf()`](https
 #| code-fold: true
 #| code-summary: Show the code!
 #| eval: false
-# NEED TO EDIT AND RUN
 set.seed(1234)
 gwRF_adaptive <- grf(formula = price ~ area_sqm + 
                      storey_order + remain_months +
@@ -2097,13 +2142,26 @@ gwRF_adaptive <- grf(formula = price ~ area_sqm +
                      NUM_CLINIC + NUM_CHLDCARE + 
                      NUM_BUS + NUM_PS,
                      dframe=train_data, 
-                     bw=bwRF_adaptive,
+                     bw=1201, # or bw=bwRF_adaptive
                      kernel="adaptive",
                      coords=coords_train,
                      ntree=30)
 ```
 
-An alternative method to determine the optimal bandwidth is that we can borrow the bandwidth from the GWR method in section 4.4.5.2 where bw = 119. 
+![](images/gaa-ass3-14.jpg){fig-align="center"}
+
+![](images/gaa-ass3-15.jpg){fig-align="center"}
+
+According to the report above, as we are using the model as a predictive model, we can focus on the following metrics:
+
+-   Mean squared error Predicted (Not OBB)
+-   R-squared Predicted (Not OBB) - indicates how well a regression model predicts responses for new observations
+-   AIC Predicted (Not OBB)
+-   AICc Predicted (Not OBB)
+
+R-squared Predicted (Not OBB) shows that the model predicts responses for new observations very well since the value is 99.404%. Since AIC Predicted and AICc Predicted have very close values, with decimal differences only, it means that there is no biasness in terms of sampling.
+
+![](images/gaa-ass3-16.jpg){fig-align="center"}
 
 Saving the model output into RDS file:
 
@@ -2125,7 +2183,7 @@ gwRF_adaptive <- read_rds("data/model/gwRF_adaptive.rds")
 gwRF_adaptive
 ```
 
------------ check if should eval be false or not ----------- 
+![](images/gaa-ass3-17-01.jpg){fig-align="center"}
 
 #### 4.4.8.2 Predict by Using Test Data and Geographical Random Forest Model
 
@@ -2191,7 +2249,9 @@ write_rds(test_data_p, "data/model/test_data_p_GRF.rds")
 ```
 
 #### 4.4.8.3 Visualise the Predicted Values
+
 Reading the saved `test_data` with predicted values:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2200,6 +2260,7 @@ test_data_p <- read_rds("data/model/test_data_p_GRF.rds")
 ```
 
 Calculate Root Mean Square Error:
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -2207,6 +2268,8 @@ Calculate Root Mean Square Error:
 rmse(test_data_p$price, 
      test_data_p$GRF_pred)
 ```
+
+![](images/gaa-ass3-18.jpg){fig-align="center"}
 
 Visualising the Predicted Values
 
@@ -2220,19 +2283,74 @@ ggplot(data = test_data_p,
   geom_point()
 ```
 
-A better predictive model should have the scatter point close to the diagonal line. The scatter plot can be also used to detect if any outliers in the model.
+![](images/gaa-ass3-19.jpg){fig-align="center"}
 
-## 4.5 Comparison of Performance Between Conventional OLS Method VS Geographical Weighted Method
+A better predictive model should have the scatter point close to the diagonal line. The scatter plot can be also used to detect if any outliers in the model. Comparing this to the random forest predictive model results in section 4.4.7.3, the points are not as close to the diagonal line but are not that far off either. It is comparable to the random forest predictive model.
 
-compare all the graphs
-compare all the RMSE, bigger is better
-look into variable importance of gwRF adaptive
+## 4.5 Comparison of Performance Between Conventional OLS Method VS Geographically Weighted Method
 
-### 4.5.1 Conventional OLS Method
+### 4.5.1 Analysis on Variable Importance
 
-### 4.5.2 Geographical Weighted Method
+Before we compare all the graphs and their respective RMSE values, we will look into the important variables which we can see from the `gwRF_adaptive` model.
+
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+gwRF_adaptive_VI_df <- as.data.frame(gwRF_adaptive$Global.Model$variable.importance)
+gwRF_adaptive_VI_df
+```
+
+![](images/gaa-ass3-20.jpg){fig-align="center"}
+
+![](images/gaa-ass3-21.jpg){fig-align="center"}
+
+From the above output, here are the variables in order of most important to least important:
+
+1.  Number of primary schools
+2.  Number of CHAS clinics within 350m
+3.  Proximity to eldercare services
+4.  Proximity to shopping mall
+5.  Proximity to hawker centres
+6.  Proximity to park
+7.  Proximity to supermarket
+8.  Proximity to CHAS clinics
+9.  Number of bus stops within 350m
+10. Number of kindergarten & childcare centres within 350m
+11. Remaining lease
+12. Proximity to good primary school
+13. Floor level
+14. Area of the unit
+15. Proximity to MRT & LRT
+16. Proximity to CBD
+
+This means that the model relies on the variable 'Number of primary schools' the most to make predictions hence it is more important for the model and the model relies on the variable 'Proximity to CBD' the least.
+
+Despite the results, we should not be quick to assume that the prediction model results can be generalised in all cases. Some people might still prefer to live close to train stations for the convenience hence it is quite surprising that it is the second last important variable. Likewise for the floor level, some do prefer to stay at higher floors and higher floors are monetarily valued more as well hence it is also surprising that it is the fourth last important variable.
+
+### 4.5.2 Comparison & Analysis of Methods
+
+We can compare the RMSE values of the different methods to see which is the best. The smaller the RMSE, the better performing the model is.
+
+RMSE values:
+
+-   Conventional OLS Method - 81049.52
+    -   ![](images/gaa-ass3-22.png){width="380"}
+-   Geographically Weighted Regression Predictive Method (GWR Method) - 39736.02
+    -   ![](images/gaa-ass3-23.png){width="361"}
+-   Random Forest Model (RF Method) - 47326.1
+    -   ![](images/gaa-ass3-24.png){width="358"}
+-   Geographical Random Forest Model (GRF Method) - 44683.33
+    -   ![](images/gaa-ass3-25.png){width="362"}
+
+We can see that the geographically weighted methods (GWR method, GRF method) perform better than the conventional methods (OLS method, RF method) as they have smaller RMSE values.
+
+The conventional OLS method has an RMSE value that is twice as large as the RMSE values for the geographically weighted methods. This shows that prediction using geographically weighted methods are better and the prices of the resale 4-room HDB flats are more accurately predicted.
+
+Comparing between the 2 geographically weighted methods, GWR and GRF, GWR has a lower/better RMSE value. Possible reasons why GRF did not perform as well as GWR could be due to the optimal bandwidth I used, or the number of trees (we configured the model to 30 trees as the dataset is too large for optimal runing time) which is significantly smaller than the default of 500 trees.
 
 # 5 References
+
 Thank you to Prof Kam for the course teachings and reference materials!
 
 Thank you to Senior MEGAN SIM TZE YEN for the reference - [Take Home Exercise 3](https://is415-msty.netlify.app/posts/2021-10-25-take-home-exercise-3/)
