@@ -172,6 +172,24 @@ Currently, the distance is measured in metre because SVY21 projected coordinate 
 distmat_km <- as.matrix(distmat/1000)
 ```
 
+## Computing Distance Matrix (Optional)
+```{r}
+eldercare_coord <- st_coordinates(eldercare)
+hexagon_coord <- st_coordinates(hexagons)
+```
+
+```{r}
+EucMatrix <- SpatialAcc::distance(hexagon_coord,
+                                  eldercare_coord,
+                                  type="euclidean")
+```
+type can be manhattan or euclidean
+
+```{r}
+EucMatrix_km <- as.matrix(EucMatrix/1000)
+```
+
+
 ## 10.6 Modelling and Visualising Accessibility using Hansen Method
 
 ### 10.6.1 Computing Hansen's accessibility
@@ -184,12 +202,14 @@ The code chunk below calculates Hansen's accessibility using *ac()* of **Spatial
 acc_Hansen <- data.frame(ac(hexagons$demand,
                             eldercare$capacity,
                             distmat_km, 
-                            #d0 = 50,
+                            # d0 = 50, #this is threshold, meaning 50km. No threshold means will take everyone into consideration
                             power = 2, 
                             family = "Hansen"))
 ```
 
 ![](images/he10-3-01.png){fig-align="center"}
+
+ac() will give a value hence need to use data.frame() to make the output into a dataframe
 
 The default field name is very messy, we will rename it to `accHansen` by using the code chunk below.
 
@@ -241,6 +261,7 @@ Firstly, we will extract the extend of `hexagons` simple feature data frame by b
 ```{r}
 mapex <- st_bbox(hexagons)
 ```
+bbox() gives the maximum and minimum coordinates of the map area
 
 The code chunk below uses a collection of mapping functions of tmap package to create a high cartographic quality accessibility to eldercare centre in Singapore.
 
@@ -259,7 +280,7 @@ tm_shape(eldercare) +
             main.title.position = "center",
             main.title.size = 2,
             legend.outside = FALSE,
-            legend.height = 0.45, 
+            legend.height = 0.25, 
             legend.width = 3.0,
             legend.format = list(digits = 6),
             legend.position = c("right", "top"),
@@ -279,6 +300,7 @@ Firstly, we need to add the planning region field into *hexagon_Hansen* simple f
 hexagon_Hansen <- st_join(hexagon_Hansen, mpsz, 
                           join = st_intersects)
 ```
+join the planning subzone area (mpsz) with the hexagon_Hansen layer. the polygon hexagon_Hansen (3 variables) + mpsz (16 variables) = 19 variables
 
 Next, *ggplot()* will be used to plot the distribution by using boxplot graphical method.
 
@@ -292,6 +314,8 @@ ggplot(data=hexagon_Hansen,
              colour ="red", 
              size=2)
 ```
+need to use a log transformation! bc the different regions have extreme values, and it will cause the plot to look very flat and not much comparison we can analyse without doing the log transformation
+
 
 ## 10.7 Modelling and Visualising Accessibility using KD2SFCA Method
 
@@ -430,7 +454,7 @@ Next, ggplot() will be used to plot the distribution by using boxplot graphical 
 
 ```{r}
 ggplot(data=hexagon_SAM, 
-       aes(y = accSAM, 
+       aes(y = log(accSAM), 
            x= REGION_N)) +
   geom_boxplot() +
   geom_point(stat="summary", 
