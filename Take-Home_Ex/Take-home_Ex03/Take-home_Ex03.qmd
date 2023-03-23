@@ -651,9 +651,9 @@ mall_csv <- read_csv("data/geospatial/shopping-mall-csv/mall_coordinates_updated
 trainstation_xlsx <- read_xlsx("data/geospatial/trainstation-xlsx/trainstations.xlsx")
 ```
 
-From the output above, we can see that some of the datasets (`childcare_kindergarten_sf`, `chas_sf`, `hawker_sf`, `park_sf`, `supermarket_sf`) are in WGS84 hence we will need to change them to SVY21 (EPSG Code 3414) later on. (section 4.3.3)
+From the output above, we can see that some of the datasets (`childcare_kindergarten_sf`, `chas_sf`, `hawker_sf`, `park_sf`, `supermarket_sf`, `mpsz_sf`) are in WGS84 hence we will need to change them to SVY21 (EPSG Code 3414) later on. (section 4.3.3)
 
-Additionally, these same datasets (`childcare_kindergarten_sf`, `chas_sf`, `hawker_sf`, `park_sf`, `supermarket_sf`) also have dimensions listed as 'XYZ'. They all have a z-dimension has seen from `z_range` in the outputs where zmin and zmax are both 0. This z-dimension is irrelevant to our analysis and we will drop them with `st_zm()` in our pre-processing later. (section 4.3.2.1)
+Additionally, these datasets (`childcare_kindergarten_sf`, `chas_sf`, `hawker_sf`, `park_sf`, `supermarket_sf`) also have dimensions listed as 'XYZ'. They all have a z-dimension has seen from `z_range` in the outputs where zmin and zmax are both 0. This z-dimension is irrelevant to our analysis and we will drop them with `st_zm()` in our pre-processing later. (section 4.3.2.1)
 
 #### 4.3.1.1 Convert CSV to sf for Shopping Malls
 
