@@ -1,0 +1,821 @@
+---
+title: "Project: 1st Order Spatial Point Patterns Analysis Methods"
+execute: 
+  message: true
+  warning: false
+  echo: true
+  eval: true
+date: "23 March 2023"
+date-modified: "`r Sys.Date()`"
+# number-sections: true
+editor: visual
+format: html
+---
+
+```{r}
+pacman::p_load(readxl, httr, jsonlite, maptools, sf, raster, spatstat, spNetwork, rgdal, sp, tmap, tidyverse)
+```
+
+## Geospatial Data Wrangling
+
+For 1st order SPPA: airbnb_sf, mpsz_sf, sg_sf
+For 2nd order SPPA: same as above
+For NetSPPA: roadnetwork_sf
+For K function, K cross function, LCLQ: sevenele_sf, busstop_sf, hotel_sf, mrt_sf, mall_sf, attr_sf, unis_sf
+
+
+read the 6 shp, kml, geojson files
+```{r}
+busstop_sf <- st_read(dsn = "data/geospatial/busstop-022023-shp", layer="BusStop")
+
+mpsz_sf <- st_read(dsn = "data/geospatial/MPSZ-2019-shp", layer="MPSZ-2019")
+
+network_sf <- st_read(dsn = "data/geospatial/roadnetwork-022023-shp", layer="RoadSectionLine")
+
+attr_sf <- st_read(dsn = "data/geospatial/touristattractions-2017-shp", layer="TOURISM")
+
+mrt_sf <- st_read(dsn = "data/geospatial/mrt-112022-shp", layer="Train_Station_Exit_Layer") 
+
+hotel_sf <- st_read("data/geospatial/hotels-2021-kml/hotel-locations.kml")
+
+sg_sf <- st_read(dsn = "data/geospatial/costal-shp", layer="CostalOutline")
+```
+read mall csv and convert to sf
+```{r}
+mall_csv <- read_csv("data/geospatial/shoppingmalls-2019-csv/mall_coordinates_updated.csv")
+mall_sf <- st_as_sf(mall_csv, coords = c("longitude", "latitude"), crs=4326)
+```
+```{r}
+mall_sf
+```
+
+read airbnb csv and convert to sf
+```{r}
+airbnb_csv <- read_csv("data/geospatial/airbnb-2022-csv/listings.csv")
+airbnb_sf <- st_as_sf(airbnb_csv, coords = c("longitude", "latitude"), crs=4326)
+```
+
+```{r}
+get_coords <- function(add_list){
+  
+  # Create a data frame to store all retrieved coordinates
+  postal_coords <- data.frame()
+  
+  # loop to go through each address in the list  
+  for (i in add_list){
+    #print(i)
+    
+    # response from OneMap API
+    r <- GET('https://developers.onemap.sg/commonapi/search?',
+           query=list(searchVal=i,
+                     returnGeom='Y',
+                     getAddrDetails='Y'))
+    data <- fromJSON(rawToChar(r$content))
+    found <- data$found
+    res <- data$results
+    
+    # Create a new data frame for each address
+    new_row <- data.frame()
+    
+    # If single result, append 
+    if (found == 1){
+      postal <- res$POSTAL 
+      lat <- res$LATITUDE
+      lng <- res$LONGITUDE
+      new_row <- data.frame(address= i, postal = postal, latitude = lat, longitude = lng)
+    }
+    
+    # If multiple results, drop NIL and append top 1
+    else if (found > 1){
+      # Remove those with NIL as postal
+      res_sub <- res[res$POSTAL != "NIL", ]
+      
+      # Set as NA first if no Postal
+      if (nrow(res_sub) == 0) {
+          new_row <- data.frame(address= i, postal = NA, latitude = NA, longitude = NA)
+      }
+      
+      else{
+        top1 <- head(res_sub, n = 1)
+        postal <- top1$POSTAL 
+        lat <- top1$LATITUDE
+        lng <- top1$LONGITUDE
+        new_row <- data.frame(address= i, postal = postal, latitude = lat, longitude = lng)
+      }
+    }
+
+    else {
+      new_row <- data.frame(address= i, postal = NA, latitude = NA, longitude = NA)
+    }
+    
+    # Add the row to the main dataframe
+    postal_coords <- rbind(postal_coords, new_row)
+  }
+  return(postal_coords)
+}
+```
+
+
+read 7-11 xlsx and get coords
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+sevenele_xlsx <- read_xlsx("data/geospatial/711stores-032023-xlsx/7-11_convenience_stores.xlsx")
+
+sevenele_list <- sort(unique(sevenele_xlsx$Postal))
+sevenele_coords <- get_coords(sevenele_list)
+sevenele_coords[(is.na(sevenele_coords$postal) | is.na(sevenele_coords$latitude) | is.na(sevenele_coords$longitude) | sevenele_coords$postal=="NIL"), ]
+```
+
+fix 711 coords
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+sevenele_coords[64,]$postal <- "098975"
+sevenele_coords[64,]$latitude <- "1.255169"
+sevenele_coords[64,]$longitude <- "103.818508"
+
+sevenele_coords[455,]$postal <- "828694"
+sevenele_coords[455,]$latitude <- "1.420668"
+sevenele_coords[455,]$longitude <- "103.912257"
+```
+
+check if fixed
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+sevenele_coords[(is.na(sevenele_coords$postal) | is.na(sevenele_coords$latitude) | is.na(sevenele_coords$longitude) | sevenele_coords$postal=="NIL"), ]
+```
+
+get 711 rds
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+sevenele_df <- left_join(sevenele_xlsx, sevenele_coords, by=c('Postal' = 'address'))
+
+sevenele_rds <- write_rds(sevenele_df, "data/geospatial/711stores-032023-xlsx/sevenele_rds.rds")
+```
+
+get 711 sf
+```{r}
+seveneles <- read_rds("data/geospatial/711stores-032023-xlsx/sevenele_rds.rds")
+sevenele_sf <- st_as_sf(seveneles,
+                    coords = c("longitude", 
+                               "latitude"),
+                    crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+
+read universities and colleges xlsx and get coords
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+unis_xlsx <- read_xlsx("data/geospatial/universitiescolleges-2023-xlsx/universities_and_colleges.xlsx")
+
+unis_list <- sort(unique(unis_xlsx$name))
+unis_coords <- get_coords(unis_list)
+unis_coords[(is.na(unis_coords$postal) | is.na(unis_coords$latitude) | is.na(unis_coords$longitude) | unis_coords$postal=="NIL"), ]
+```
+
+fix uni coords
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+unis_coords[1,]$postal <- "179104"
+unis_coords[1,]$latitude <- "1.29006"
+unis_coords[1,]$longitude <- "103.8497"
+
+unis_coords[2,]$postal <- "229469"
+unis_coords[2,]$latitude <- "1.31648392303"
+unis_coords[2,]$longitude <- "103.873964955"
+
+unis_coords[4,]$postal <- "408601"
+unis_coords[4,]$latitude <- "1.3196562"
+unis_coords[4,]$longitude <- "103.8923565"
+
+unis_coords[5,]$postal <- "059405"
+unis_coords[5,]$latitude <- "1.28799"
+unis_coords[5,]$longitude <- "103.84692"
+
+unis_coords[6,]$postal <- "188946"
+unis_coords[6,]$latitude <- "1.3462717"
+unis_coords[6,]$longitude <- "103.95302009"
+
+unis_coords[7,]$postal <- "329162"
+unis_coords[7,]$latitude <- "1.3270276324741"
+unis_coords[7,]$longitude <- "103.85336279869"
+
+unis_coords[10,]$postal <- "188647"
+unis_coords[10,]$latitude <- "1.2990616"
+unis_coords[10,]$longitude <- "103.8494881"
+
+unis_coords[11,]$postal <- "088383"
+unis_coords[11,]$latitude <- "1.28013"
+unis_coords[11,]$longitude <- "103.84193"
+
+unis_coords[12,]$postal <- "049319"
+unis_coords[12,]$latitude <- "1.28469"
+unis_coords[12,]$longitude <- "103.85269"
+
+unis_coords[14,]$postal <- "138676"
+unis_coords[14,]$latitude <- "1.299122"
+unis_coords[14,]$longitude <- "103.788025"
+
+unis_coords[16,]$postal <- "228095"
+unis_coords[16,]$latitude <- "1.30209070954"
+unis_coords[16,]$longitude <- "103.849560613"
+
+unis_coords[17,]$postal <- "188306"
+unis_coords[17,]$latitude <- "1.3001799"
+unis_coords[17,]$longitude <- "103.84924"
+
+unis_coords[19,]$postal <- "069542"
+unis_coords[19,]$latitude <- "1.2750794"
+unis_coords[19,]$longitude <- "103.8462627"
+
+unis_coords[20,]$postal <- "148951"
+unis_coords[20,]$latitude <- "1.2970726"
+unis_coords[20,]$longitude <- "103.8011673"
+
+unis_coords[22,]$postal <- "189655"
+unis_coords[22,]$latitude <- "1.30020700501"
+unis_coords[22,]$longitude <- "103.851710836"
+
+unis_coords[26,]$postal <- "248922"
+unis_coords[26,]$latitude <- "1.31532"
+unis_coords[26,]$longitude <- "103.77994"
+
+unis_coords[30,]$postal <- "599491"
+unis_coords[30,]$latitude <- "1.326"
+unis_coords[30,]$longitude <- "103.79999"
+
+unis_coords[37,]$postal <- "550266"
+unis_coords[37,]$latitude <- "1.35324"
+unis_coords[37,]$longitude <- "103.87145"
+
+unis_coords[38,]$postal <- "139660"
+unis_coords[38,]$latitude <- "1.3079"
+unis_coords[38,]$longitude <- "103.777"
+```
+
+check fix
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+unis_coords[(is.na(unis_coords$postal) | is.na(unis_coords$latitude) | is.na(unis_coords$longitude) | unis_coords$postal=="NIL"), ]
+```
+
+get uni rds
+```{r}
+#| code-fold: true
+#| code-summary: Show the code!
+#| eval: false
+unis_df <- left_join(unis_xlsx, unis_coords, by=c('name' = 'address'))
+unis_rds <- write_rds(unis_df, "data/geospatial/universitiescolleges-2023-xlsx/unis_rds.rds")
+```
+
+get unis sf
+```{r}
+unis <- read_rds("data/geospatial/universitiescolleges-2023-xlsx/unis_rds.rds")
+unis_sf <- st_as_sf(unis,
+                    coords = c("longitude", 
+                               "latitude"),
+                    crs=4326) %>%
+  st_transform(crs = 3414)
+```
+
+remove unnecessary columns (except mpsz_sf, network_sf)
+```{r}
+attr_sf <- attr_sf %>% select(c(6))
+busstop_sf <- busstop_sf %>% select(c(1))
+hotel_sf <- hotel_sf %>% select(c(1))
+mall_sf <- mall_sf %>% select(c(2))
+mrt_sf <- mrt_sf %>% select(c(1))
+sevenele_sf <- sevenele_sf %>% select(c(1))
+unis_sf <- unis_sf %>% select(c(1))
+airbnb_sf <- airbnb_sf %>% select(c(2,6,7,8))
+```
+
+
+
+check for invalid geometries
+
+```{r}
+length(which(st_is_valid(attr_sf) == FALSE))
+length(which(st_is_valid(busstop_sf) == FALSE))
+length(which(st_is_valid(hotel_sf) == FALSE))
+length(which(st_is_valid(mall_sf) == FALSE))
+length(which(st_is_valid(mrt_sf) == FALSE))
+length(which(st_is_valid(sevenele_sf) == FALSE))
+length(which(st_is_valid(unis_sf) == FALSE))
+
+length(which(st_is_valid(mpsz_sf) == FALSE))
+length(which(st_is_valid(network_sf) == FALSE))
+length(which(st_is_valid(airbnb_sf) == FALSE))
+length(which(st_is_valid(sg_sf) == FALSE))
+
+```
+
+fix mpsz invalid geometry and check again
+```{r}
+mpsz_sf <- st_make_valid(mpsz_sf)
+length(which(st_is_valid(mpsz_sf) == FALSE))
+```
+fix sg invalid geometry and check again
+```{r}
+sg_sf <- st_make_valid(sg_sf)
+length(which(st_is_valid(sg_sf) == FALSE))
+```
+
+
+dealing w missing values
+
+```{r}
+attr_sf[rowSums(is.na(attr_sf))!=0,]
+busstop_sf[rowSums(is.na(busstop_sf))!=0,]
+hotel_sf[rowSums(is.na(hotel_sf))!=0,]
+mall_sf[rowSums(is.na(mall_sf))!=0,]
+mrt_sf[rowSums(is.na(mrt_sf))!=0,]
+sevenele_sf[rowSums(is.na(sevenele_sf))!=0,]
+unis_sf[rowSums(is.na(unis_sf))!=0,]
+
+mpsz_sf[rowSums(is.na(mpsz_sf))!=0,]
+network_sf[rowSums(is.na(network_sf))!=0,]
+airbnb_sf[rowSums(is.na(airbnb_sf))!=0,]
+sg_sf[rowSums(is.na(sg_sf))!=0,]
+```
+
+verify coordinate system
+
+```{r}
+st_crs(attr_sf)
+st_crs(busstop_sf)
+st_crs(hotel_sf)
+st_crs(mall_sf)
+st_crs(mrt_sf)
+st_crs(sevenele_sf)
+st_crs(unis_sf)
+st_crs(mpsz_sf)
+st_crs(network_sf)
+st_crs(airbnb_sf)
+st_crs(sg_sf)
+```
+
+transform coordinate system
+```{r}
+# with st_set_crs(), we can assign the appropriate ESPG Code
+attr_sf <- st_set_crs(attr_sf, 3414)
+busstop_sf <- st_set_crs(busstop_sf, 3414)
+mrt_sf <- st_set_crs(mrt_sf, 3414)
+network_sf <- st_set_crs(network_sf, 3414)
+sg_sf <- st_set_crs(sg_sf, 3414)
+
+# with st_transform(), we can change from one CRS to another
+mpsz_sf <- st_transform(mpsz_sf, crs=3414)
+hotel_sf <- st_transform(hotel_sf, crs=3414)
+mall_sf <- st_transform(mall_sf, crs=3414)
+airbnb_sf <- st_transform(airbnb_sf, crs=3414)
+
+# sevenele_sf and unis_sf are in the correct CRS and ESPG code
+```
+
+
+## Preparing for 1st Order SPPA
+convert sf to sp's spatial class
+```{r}
+airbnb <- as_Spatial(airbnb_sf)
+mpsz <- as_Spatial(mpsz_sf)
+sg <- as_Spatial(sg_sf)
+```
+
+convert sp's spatial into generic sp format
+```{r}
+airbnb_sp <- as(airbnb, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+```
+
+```{r}
+airbnb
+```
+
+
+convert generic sp format into spatstat's ppp format
+```{r}
+airbnb_ppp <- as(airbnb_sp, "ppp")
+airbnb_ppp
+```
+
+check number of duplicate point events
+```{r}
+sum(multiplicity(airbnb_ppp) > 1)
+```
+
+handle duplicate points:
+```{r}
+airbnb_ppp_jit <- rjitter(airbnb_ppp, 
+                             retry=TRUE, 
+                             nsim=1, 
+                             drop=TRUE)
+```
+
+check duplicated points:
+```{r}
+any(duplicated(airbnb_ppp_jit))
+```
+
+create owin
+```{r}
+sg_owin <- as(sg_sp, "owin")
+```
+
+combine airbnb point events obj and owin obj
+```{r}
+airbnbSG_ppp = airbnb_ppp[sg_owin]
+```
+
+summary
+```{r}
+summary(airbnbSG_ppp)
+```
+
+## 1st Order SPPA
+
+rescale to convert from m to km
+```{r}
+airbnbSG_ppp.km <- rescale(airbnbSG_ppp, 1000, "km")
+```
+
+
+Kernel Density Estimation (automatic bandwidth)
+```{r}
+kde_airbnbSG.bw <- density(airbnbSG_ppp.km,
+                              sigma=bw.diggle,
+                              edge=TRUE,
+                            kernel="gaussian") 
+```
+other methods to do: bw.CvL(), bw.scott(), bw.ppl()
+other smoothing kernels: epanechnikov, quartic, disc
+
+```{r}
+plot(kde_airbnbSG.bw)
+```
+
+KDE (fixed bandwidth)
+```{r}
+kde_airbnbSG_600 <- density(airbnbSG_ppp.km, sigma=0.6, edge=TRUE, kernel="gaussian") #0.6 sigma = 600 m for bandwidth. 600m = 0.6km
+plot(kde_airbnbSG_600)
+```
+sigma: range from 0.1 to 10
+different kernels
+
+KDE (adaptive bandwidth)
+```{r}
+kde_airbnbSG_adaptive <- adaptive.density(airbnbSG_ppp.km, method="kernel")
+plot(kde_airbnbSG_adaptive)
+```
+
+convert KDE output into grid (do for all)
+```{r}
+gridded_kde_airbnbSG_bw <- as.SpatialGridDataFrame.im(kde_airbnbSG.bw)
+
+# convert grid output into raster
+kde_airbnbSG_bw_raster <- raster(gridded_kde_airbnbSG_bw)
+
+# assign projection systems
+projection(kde_airbnbSG_bw_raster) <- CRS("+init=EPSG:3414")
+kde_airbnbSG_bw_raster
+```
+
+final visualisation tmap
+```{r}
+tm_shape(kde_airbnbSG_bw_raster) + 
+  tm_raster("v") +
+  tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
+```
+
+## 2nd Order SPPA G/F/K/L Function
+
+G Function estimation
+```{r}
+#| eval: false
+G_airbnb = Gest(airbnbSG_ppp, correction =c("rs", "Hanisch"))
+plot(G_airbnb, xlim=c(0,500))
+```
+other correction: "best"
+Gest() - corrections: "none", "rs", "km", "Hanisch", "best", "all"
+Fest() - corrections: "none", "rs", "km", "cs", "best", "all"
+Kest() - corrections: "none", "border", "bord.modif", "isotropic", "Ripley", "translate", "translation", "rigid", "none", "good", "best", "all"
+Lest() - same as Kest()
+
+Complete Spatial Randomness Test
+```{r}
+#| eval: false
+G_airbnb.csr <- envelope(airbnbSG_ppp, Gest, nsim = 999)
+# G_airbnb.csr <- envelope(airbnbSG_ppp, Gest, correction="all", nsim = 999)
+```
+nsim: number btwn 0 to 1000
+
+plot to show
+```{r}
+#| eval: false
+plot(G_airbnb.csr)
+```
+
+## visualisation
+```{r}
+tmap_mode("plot")
+tm_shape(mpsz_sf) + 
+  tm_borders(alpha = 0.5) +
+tm_shape(airbnb_sf) + 
+  tm_dots(col = "red", size = 0.05) +
+  tm_layout(main.title = "Airbnbs",
+            main.title.position = 'center',
+            main.title.size = 0.8,
+            frame = TRUE)
+```
+
+```{r}
+occurrence <- airbnb_sf %>% count(airbnb_sf$neighbourhood)
+```
+
+```{r}
+occurrence <- occurrence[order(-occurrence$n),]
+```
+
+```{r}
+occurrence
+```
+kallang has the most airbnbs
+
+K cross function
+```{r}
+
+```
+
+
+
+## NetSPPA
+kallang airbnbs:
+```{r}
+kallang_airbnb_sf <- filter(airbnb_sf, neighbourhood == "Kallang")
+kallang_airbnb_sf
+```
+
+
+
+
+```{r}
+plot(network_sf)
+```
+
+kallang airbnb plot
+```{r}
+tmap_mode('plot')
+tm_shape(kallang_airbnb_sf) + 
+  tm_dots() + 
+  tm_shape(network_sf) +
+  tm_lines()
+```
+
+all airbnbs plot
+```{r}
+tmap_mode('view')
+tm_shape(airbnb_sf) + 
+  tm_dots() + 
+  tm_shape(network_sf) +
+  tm_lines()
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+convert to single linestring
+```{r}
+network_linestring <- network_sf %>% st_cast("LINESTRING")
+```
+
+save to rds
+```{r}
+#| eval: false
+network_linestring_rds <- write_rds(network_linestring, "data/network_linestring.rds")
+```
+
+
+preparing lixels objects
+```{r}
+#| eval: false
+lixels <- lixelize_lines(network_linestring, 
+                         700, 
+                         mindist = 350)
+```
+
+save to rds
+```{r}
+#| eval: false
+lixels_rds <- write_rds(lixels, "data/lixels_rds.rds")
+```
+
+read the rds file
+```{r}
+lixels_rds <- read_rds("data/lixels_rds.rds")
+```
+
+
+generate line centre points
+```{r}
+#| eval: false
+samples <- lines_center(lixels_rds)
+```
+
+write to rds
+```{r}
+#| eval: false
+samples_rds <- write_rds(samples, "data/samples_rds.rds")
+```
+
+read the rds file
+```{r}
+samples_rds <- read_rds("data/samples_rds.rds")
+```
+
+
+
+
+perform NetKDE
+```{r}
+#| eval: false
+densities <- nkde(network_linestring, 
+                  events = kallang_airbnb_sf,
+                  w = rep(1,nrow(kallang_airbnb_sf)),
+                  samples = samples_rds,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+write to rds
+```{r}
+#| eval: false
+densities_rds <- write_rds(densities, "data/densities_rds.rds")
+```
+
+read the rds file
+```{r}
+densities_rds <- read_rds("data/densities_rds.rds")
+```
+
+```{r}
+samples_rds$density <- densities_rds
+lixels_rds$density <- densities_rds
+```
+
+```{r}
+# rescaling to help the mapping
+samples_rds$density <- samples_rds$density*1000
+lixels_rds$density <- lixels_rds$density*1000
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixels_rds)+
+  tm_lines(col="density")+
+tm_shape(kallang_airbnb_sf)+
+  tm_dots()
+```
+
+```{r}
+#| eval: false
+kfun_kallang_airbnb <- kfunctions(network_linestring, 
+                             kallang_airbnb_sf,
+                             start = 0, 
+                             end = 1000, 
+                             step = 50, 
+                             width = 50, 
+                             nsim = 50, 
+                             resolution = 50,
+                             verbose = FALSE, 
+                             conf_int = 0.05,
+                             agg = 40)
+```
+
+
+```{r}
+#| eval: false
+kfun_kallang_airbnb$plotk
+```
+
+### for all airbnbs
+perform NetKDE for all airbnbs
+```{r}
+#| eval: false
+all_densities <- nkde(network_linestring, 
+                  events = airbnb_sf,
+                  w = rep(1,nrow(airbnb_sf)),
+                  samples = samples_rds,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+write to rds
+```{r}
+#| eval: false
+all_densities_rds <- write_rds(all_densities, "data/all_densities_rds.rds")
+```
+
+read rds
+```{r}
+all_densities_rds <- read_rds("data/all_densities_rds.rds")
+```
+
+```{r}
+samples_rds$density <- all_densities_rds
+lixels_rds$density <- all_densities_rds
+```
+
+```{r}
+# rescaling to help the mapping
+samples_rds$density <- samples_rds$density*1000
+lixels_rds$density <- lixels_rds$density*1000
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixels_rds)+
+  tm_lines(col="density")+
+tm_shape(airbnb_sf)+
+  tm_dots()
+```
+
+```{r}
+#| eval: false
+kfun_all_airbnbs <- kfunctions(network_linestring, 
+                             airbnb_sf,
+                             start = 0, 
+                             end = 1000, 
+                             step = 50, 
+                             width = 50, 
+                             nsim = 50, 
+                             resolution = 50,
+                             verbose = FALSE, 
+                             conf_int = 0.05,
+                             agg = 1500)
+```
+
+```{r}
+#| eval: false
+kfun_all_airbnbs$plotk
+```
+
+network cross K function spNetwork
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring, kallang_airbnb_sf, mrt_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring, mrt_sf, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+## kcross
+```{r}
+#| eval: false
+Kcross(airbnbSG_ppp.km, )
+```
+
