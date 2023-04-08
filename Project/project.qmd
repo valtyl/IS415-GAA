@@ -13,7 +13,7 @@ format: html
 ---
 
 ```{r}
-pacman::p_load(readxl, httr, jsonlite, maptools, sf, raster, spatstat, spNetwork, rgdal, sp, tmap, tidyverse)
+pacman::p_load(readxl, httr, jsonlite, maptools, sf, sfdep, raster, spatstat, spNetwork, rgdal, sp, tmap, tidyverse)
 ```
 
 ## Geospatial Data Wrangling
@@ -32,7 +32,7 @@ mpsz_sf <- st_read(dsn = "data/geospatial/MPSZ-2019-shp", layer="MPSZ-2019")
 
 network_sf <- st_read(dsn = "data/geospatial/roadnetwork-022023-shp", layer="RoadSectionLine")
 
-attr_sf <- st_read(dsn = "data/geospatial/touristattractions-2017-shp", layer="TOURISM")
+attr_sf <- st_read(dsn = "data/geospatial/tourism-shp", layer="TOURISM")
 
 mrt_sf <- st_read(dsn = "data/geospatial/mrt-112022-shp", layer="Train_Station_Exit_Layer") 
 
@@ -294,7 +294,7 @@ unis_sf <- st_as_sf(unis,
 
 remove unnecessary columns (except mpsz_sf, network_sf)
 ```{r}
-attr_sf <- attr_sf %>% select(c(6))
+attr_sf <- attr_sf %>% select(c(5))
 busstop_sf <- busstop_sf %>% select(c(1))
 hotel_sf <- hotel_sf %>% select(c(1))
 mall_sf <- mall_sf %>% select(c(2))
@@ -304,6 +304,10 @@ unis_sf <- unis_sf %>% select(c(1))
 airbnb_sf <- airbnb_sf %>% select(c(2,6,7,8))
 ```
 
+remove z dimensions
+```{r}
+hotel_sf <- st_zm(hotel_sf)
+```
 
 
 check for invalid geometries
@@ -323,6 +327,11 @@ length(which(st_is_valid(airbnb_sf) == FALSE))
 length(which(st_is_valid(sg_sf) == FALSE))
 
 ```
+
+```{r}
+hotel_sf <- st_zm(hotel_sf)
+```
+
 
 fix mpsz invalid geometry and check again
 ```{r}
@@ -413,6 +422,7 @@ airbnb_ppp <- as(airbnb_sp, "ppp")
 airbnb_ppp
 ```
 
+
 check number of duplicate point events
 ```{r}
 sum(multiplicity(airbnb_ppp) > 1)
@@ -433,12 +443,19 @@ any(duplicated(airbnb_ppp_jit))
 
 create owin
 ```{r}
-sg_owin <- as(sg_sp, "owin")
+# sg_owin <- as(sg_sp, "owin")
+central = mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',]
+central_owin <- central %>%
+  as ('Spatial') %>%
+  as ('SpatialPolygons') %>%
+  as ('owin')
+plot(central_owin)
 ```
+
 
 combine airbnb point events obj and owin obj
 ```{r}
-airbnbSG_ppp = airbnb_ppp[sg_owin]
+airbnbSG_ppp = airbnb_ppp_jit[central_owin]
 ```
 
 summary
@@ -490,13 +507,26 @@ gridded_kde_airbnbSG_bw <- as.SpatialGridDataFrame.im(kde_airbnbSG.bw)
 kde_airbnbSG_bw_raster <- raster(gridded_kde_airbnbSG_bw)
 
 # assign projection systems
-projection(kde_airbnbSG_bw_raster) <- CRS("+init=EPSG:3414")
+projection(kde_airbnbSG_bw_raster) <- CRS("+init=EPSG:3414 +datum=WGS84 +units=km")
 kde_airbnbSG_bw_raster
 ```
 
+```{r}
+kl = mpsz_sf[mpsz_sf$PLN_AREA_N == "KALLANG",]
+dc = mpsz_sf[mpsz_sf$PLN_AREA_N == "DOWNTOWN CORE",]
+ot = mpsz_sf[mpsz_sf$PLN_AREA_N == "OUTRAM",]
+rc = mpsz_sf[mpsz_sf$PLN_AREA_N == "ROCHOR",]
+```
+
+```{r}
+mapex <- st_bbox(central)
+```
+
+
 final visualisation tmap
 ```{r}
-tm_shape(kde_airbnbSG_bw_raster) + 
+tmap_mode("plot")
+tm_shape(kde_airbnbSG_bw_raster, bbox=mapex) + 
   tm_raster("v") +
   tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
 ```
@@ -527,6 +557,27 @@ plot to show
 ```{r}
 #| eval: false
 plot(G_airbnb.csr)
+```
+
+K Function estimation
+```{r}
+#| eval: false
+K_airbnb = Kest(airbnbSG_ppp, correction =c("best"))
+plot(K_airbnb, xlim=c(0,500))
+```
+
+Complete Spatial Randomness Test
+```{r}
+#| eval: false
+K_airbnb.csr <- envelope(airbnbSG_ppp, Kest, nsim = 999)
+# G_airbnb.csr <- envelope(airbnbSG_ppp, Gest, correction="all", nsim = 999)
+```
+nsim: number btwn 0 to 1000
+
+plot to show
+```{r}
+#| eval: false
+plot(K_airbnb.csr)
 ```
 
 ## visualisation
@@ -813,9 +864,296 @@ crossk_kallang <- cross_kfunctions(network_linestring, mrt_sf, kallang_airbnb_sf
 crossk_kallang$plotk
 ```
 
-## kcross
+## Analysing Marked Point Patterns
+make sf containing all 8 different types of point events
+```{r}
+attr_mp <- attr_sf
+attr_mp$type <- "attraction"
+attr_mp <- attr_mp %>% select(c(2,3))
+
+busstop_mp <- busstop_sf
+busstop_mp$type <- "busstop"
+busstop_mp <- busstop_mp %>% select(c(2,3))
+
+hotel_mp <- hotel_sf
+hotel_mp$type <- "hotel"
+hotel_mp <- hotel_mp %>% select(c(2,3))
+
+mall_mp <- mall_sf
+mall_mp$type <- "mall"
+mall_mp <- mall_mp %>% select(c(2,3))
+
+mrt_mp <- mrt_sf
+mrt_mp$type <- "mrt"
+mrt_mp <- mrt_mp %>% select(c(2,3))
+
+sevenele_mp <- sevenele_sf
+sevenele_mp$type <- "seveneleven"
+sevenele_mp <- sevenele_mp %>% select(c(2,3))
+
+unis_mp <- unis_sf
+unis_mp$type <- "uni"
+unis_mp <- unis_mp %>% select(c(2,3))
+
+airbnb_mp <- airbnb_sf
+airbnb_mp$type <- "airbnb"
+airbnb_mp <- airbnb_mp %>% select(c(5,6))
+```
+
+
+
+```{r}
+all_sf <- do.call("rbind", list(attr_mp, busstop_mp, hotel_mp, mall_mp, mrt_mp, sevenele_mp, unis_mp, airbnb_mp))
+
+# all_sf <- do.call("rbind", list(busstop_mp, hotel_mp, mall_mp, mrt_mp, sevenele_mp, unis_mp, airbnb_mp))
+```
+
+```{r}
+all_sf[rowSums(is.na(all_sf))!=0,]
+```
+
+
+
+```{r}
+all_sf[!st_is_empty(all_sf), ]
+```
+
+
+
+```{r}
+all <- as_Spatial(all_sf)
+```
+
+
+shows that type field is in chr data type, need to change to factor data type
+```{r}
+str(all)
+```
+
+```{r}
+
+```
+
+
+convert type field to factor data type
+```{r}
+all@data$type <- as.factor(all@data$type)
+```
+
+```{r}
+tmap_mode("view")
+# mpsz_sf
+tm_shape(mpsz_sf, bbox=st_bbox(mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',])) +
+  tm_borders(alpha = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+tm_shape(airbnb_sf) +
+  tm_dots(col='red', size = 0.02, alpha = 0.5) +
+tm_shape(attr_sf) +
+  tm_dots(col='orange', size = 0.02, alpha = 0.5) + 
+tm_shape(busstop_sf) +
+  tm_dots(col='yellow', size = 0.02, alpha = 0.5) +
+tm_shape(sevenele_sf) +
+  tm_dots(col='green', size = 0.02, alpha = 0.5) + 
+tm_shape(mall_sf) +
+  tm_dots(col='blue', size = 0.02, alpha = 0.5) +
+tm_shape(hotel_sf) +
+  tm_dots(col='purple', size = 0.02, alpha = 0.5) + 
+tm_shape(unis_sf) +
+  tm_dots(col='black', size = 0.02, alpha = 0.5) +
+tm_shape(mrt_sf) +
+  tm_dots(col='violet', size = 0.02, alpha = 0.5) +
+tm_view(set.zoom.limits = c(10,16)) 
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_borders(alpha = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+tm_shape(all) +
+  tm_dots(col = 'type', size = 0.02)
+```
+
+```{r}
+tmap_mode("plot")
+```
+converting into ppp
+```{r}
+all_ppp <- as(all, "ppp")
+```
+
 ```{r}
 #| eval: false
-Kcross(airbnbSG_ppp.km, )
+plot(all_ppp)
 ```
+
+```{r}
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_borders(alpha = 0.5) +
+  tmap_options(check.and.fix = TRUE) +
+tm_shape(all) +
+  tm_dots(col = 'type', size = 0.02)
+```
+
+
+```{r}
+summary(all_ppp)
+```
+
+avoiding duplicated spatial point events using jittering
+```{r}
+all_ppp_jit <- rjitter(all_ppp, retry=TRUE, nsim=1, drop=TRUE)
+```
+
+check for duplicates
+```{r}
+any(duplicated(all_ppp_jit))
+```
+
+```{r}
+summary(all_ppp_jit)
+```
+
+
+```{r}
+central = mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',]
+kl = mpsz_sf[mpsz_sf$PLN_AREA_N == "KALLANG",]
+dc = mpsz_sf[mpsz_sf$PLN_AREA_N == "DOWNTOWN CORE",]
+ot = mpsz_sf[mpsz_sf$PLN_AREA_N == "OUTRAM",]
+rc = mpsz_sf[mpsz_sf$PLN_AREA_N == "ROCHOR",]
+
+jw = mpsz_sf[mpsz_sf$PLN_AREA_N == "JURONG WEST",]
+sb = mpsz_sf[mpsz_sf$PLN_AREA_N == "SEMBAWANG",]
+pr = mpsz_sf[mpsz_sf$PLN_AREA_N == "PASIR RIS",]
+```
+
+
+extracting study area, Kallang, since there is the most airbnbs
+```{r}
+kl = mpsz[mpsz@data$PLN_AREA_N == "KALLANG",]
+plot(kl, main="Kallang")
+```
+
+converting the spatial point data frame into generic sp format
+```{r}
+kl_sp = as(kl, "SpatialPolygons")
+str(kl_sp)
+```
+
+creating owin object
+```{r}
+kl_owin = as(kl_sp, "owin")
+str(kl_owin)
+```
+
+```{r}
+kl_owin <- mpsz_sf[mpsz_sf$PLN_AREA_N == "KALLANG",] %>%
+  as('Spatial') %>%
+  as('SpatialPolygons') %>%
+  as('owin')
+```
+
+
+combining all spatial event points and kallang study area
+```{r}
+all_kl_ppp = all_ppp_jit[kl_owin]
+```
+
+```{r}
+summary(all_kl_ppp)
+```
+
+```{r}
+plot(all_kl_ppp,cols=c("red", "orange", "yellow", "brown", "green", "violet", "blue", "black"))
+```
+
+
+```{r}
+#| eval: false
+all_Kcross <- Kcross(all_kl_ppp, i="airbnb", j="seveneleven",
+                     correction='border')
+plot(all_Kcross)
+```
+
+```{r}
+all_Kcross.csr <- envelope(all_kl_ppp, Kcross, i="airbnb", j="seveneleven", correction='border', nsim=999)
+```
+
+
+```{r}
+plot(all_Kcross.csr, xlab="distance(m)", xlim=c(0,500))
+```
+
+## L cross
+```{r}
+all_Lcross <- Lcross(all_kl_ppp, i="airbnb", j="seveneleven", correction='border')
+plot(all_kl_ppp, . -r ~ r, 
+     xlab = "distance(m)", 
+     xlim=c(0, 500))
+```
+
+
+```{r}
+all_Lcross.csr <- envelope(all_kl_ppp, Lcross, i="airbnb", j="seveneleven", correction='border', nsim=999)
+```
+
+```{r}
+plot(all_Lcross.csr, . -r ~ r, xlab="distance(m)", xlim=c(0,500))
+```
+
+
+
+## LCLQ
+prepare nb list
+```{r}
+nb <- include_self(
+  st_knn(st_geometry(all_sf), 6))
+```
+
+weights list
+```{r}
+wt <- st_kernel_weights(nb, 
+                        all_sf, 
+                        "gaussian", 
+                        adaptive = TRUE)
+```
+
+vector list
+```{r}
+Airbnb <- all_sf %>%
+  filter(type == "airbnb")
+A <- Airbnb$type
+```
+
+```{r}
+SevenEleven <- all_sf %>%
+  filter(type == "seveneleven")
+B <- SevenEleven$type
+```
+
+compute LCLQ
+```{r}
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+joining output table
+```{r}
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "X7.Eleven",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(12, 16))
+```
+
 
