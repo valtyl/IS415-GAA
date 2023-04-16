@@ -18,13 +18,10 @@ pacman::p_load(readxl, httr, jsonlite, maptools, sf, sfdep, raster, spatstat, sp
 
 ## Geospatial Data Wrangling
 
-For 1st order SPPA: airbnb_sf, mpsz_sf, sg_sf
-For 2nd order SPPA: same as above
-For NetSPPA: roadnetwork_sf
-For K function, K cross function, LCLQ: sevenele_sf, busstop_sf, hotel_sf, mrt_sf, mall_sf, attr_sf, unis_sf
-
+For 1st order SPPA: airbnb_sf, mpsz_sf, sg_sf For 2nd order SPPA: same as above For NetSPPA: roadnetwork_sf For K function, K cross function, LCLQ: sevenele_sf, busstop_sf, hotel_sf, mrt_sf, mall_sf, attr_sf, unis_sf
 
 read the 6 shp, kml, geojson files
+
 ```{r}
 busstop_sf <- st_read(dsn = "data/geospatial/busstop-022023-shp", layer="BusStop")
 
@@ -40,16 +37,20 @@ hotel_sf <- st_read("data/geospatial/hotels-2021-kml/hotel-locations.kml")
 
 sg_sf <- st_read(dsn = "data/geospatial/costal-shp", layer="CostalOutline")
 ```
+
 read mall csv and convert to sf
+
 ```{r}
 mall_csv <- read_csv("data/geospatial/shoppingmalls-2019-csv/mall_coordinates_updated.csv")
 mall_sf <- st_as_sf(mall_csv, coords = c("longitude", "latitude"), crs=4326)
 ```
+
 ```{r}
 mall_sf
 ```
 
 read airbnb csv and convert to sf
+
 ```{r}
 airbnb_csv <- read_csv("data/geospatial/airbnb-2022-csv/listings.csv")
 airbnb_sf <- st_as_sf(airbnb_csv, coords = c("longitude", "latitude"), crs=4326)
@@ -115,8 +116,8 @@ get_coords <- function(add_list){
 }
 ```
 
-
 read 7-11 xlsx and get coords
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -129,6 +130,7 @@ sevenele_coords[(is.na(sevenele_coords$postal) | is.na(sevenele_coords$latitude)
 ```
 
 fix 711 coords
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -143,6 +145,7 @@ sevenele_coords[455,]$longitude <- "103.912257"
 ```
 
 check if fixed
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -151,6 +154,7 @@ sevenele_coords[(is.na(sevenele_coords$postal) | is.na(sevenele_coords$latitude)
 ```
 
 get 711 rds
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -161,6 +165,7 @@ sevenele_rds <- write_rds(sevenele_df, "data/geospatial/711stores-032023-xlsx/se
 ```
 
 get 711 sf
+
 ```{r}
 seveneles <- read_rds("data/geospatial/711stores-032023-xlsx/sevenele_rds.rds")
 sevenele_sf <- st_as_sf(seveneles,
@@ -170,8 +175,8 @@ sevenele_sf <- st_as_sf(seveneles,
   st_transform(crs = 3414)
 ```
 
-
 read universities and colleges xlsx and get coords
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -184,6 +189,7 @@ unis_coords[(is.na(unis_coords$postal) | is.na(unis_coords$latitude) | is.na(uni
 ```
 
 fix uni coords
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -266,6 +272,7 @@ unis_coords[38,]$longitude <- "103.777"
 ```
 
 check fix
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -274,6 +281,7 @@ unis_coords[(is.na(unis_coords$postal) | is.na(unis_coords$latitude) | is.na(uni
 ```
 
 get uni rds
+
 ```{r}
 #| code-fold: true
 #| code-summary: Show the code!
@@ -283,6 +291,7 @@ unis_rds <- write_rds(unis_df, "data/geospatial/universitiescolleges-2023-xlsx/u
 ```
 
 get unis sf
+
 ```{r}
 unis <- read_rds("data/geospatial/universitiescolleges-2023-xlsx/unis_rds.rds")
 unis_sf <- st_as_sf(unis,
@@ -293,6 +302,7 @@ unis_sf <- st_as_sf(unis,
 ```
 
 remove unnecessary columns (except mpsz_sf, network_sf)
+
 ```{r}
 attr_sf <- attr_sf %>% select(c(5))
 busstop_sf <- busstop_sf %>% select(c(1))
@@ -305,10 +315,10 @@ airbnb_sf <- airbnb_sf %>% select(c(2,6,7,8))
 ```
 
 remove z dimensions
+
 ```{r}
 hotel_sf <- st_zm(hotel_sf)
 ```
-
 
 check for invalid geometries
 
@@ -332,18 +342,19 @@ length(which(st_is_valid(sg_sf) == FALSE))
 hotel_sf <- st_zm(hotel_sf)
 ```
 
-
 fix mpsz invalid geometry and check again
+
 ```{r}
 mpsz_sf <- st_make_valid(mpsz_sf)
 length(which(st_is_valid(mpsz_sf) == FALSE))
 ```
+
 fix sg invalid geometry and check again
+
 ```{r}
 sg_sf <- st_make_valid(sg_sf)
 length(which(st_is_valid(sg_sf) == FALSE))
 ```
-
 
 dealing w missing values
 
@@ -379,6 +390,7 @@ st_crs(sg_sf)
 ```
 
 transform coordinate system
+
 ```{r}
 # with st_set_crs(), we can assign the appropriate ESPG Code
 attr_sf <- st_set_crs(attr_sf, 3414)
@@ -396,9 +408,10 @@ airbnb_sf <- st_transform(airbnb_sf, crs=3414)
 # sevenele_sf and unis_sf are in the correct CRS and ESPG code
 ```
 
-
 ## Preparing for 1st Order SPPA
+
 convert sf to sp's spatial class
+
 ```{r}
 airbnb <- as_Spatial(airbnb_sf)
 mpsz <- as_Spatial(mpsz_sf)
@@ -406,6 +419,7 @@ sg <- as_Spatial(sg_sf)
 ```
 
 convert sp's spatial into generic sp format
+
 ```{r}
 airbnb_sp <- as(airbnb, "SpatialPoints")
 sg_sp <- as(sg, "SpatialPolygons")
@@ -415,20 +429,21 @@ sg_sp <- as(sg, "SpatialPolygons")
 airbnb
 ```
 
-
 convert generic sp format into spatstat's ppp format
+
 ```{r}
 airbnb_ppp <- as(airbnb_sp, "ppp")
 airbnb_ppp
 ```
 
-
 check number of duplicate point events
+
 ```{r}
 sum(multiplicity(airbnb_ppp) > 1)
 ```
 
 handle duplicate points:
+
 ```{r}
 airbnb_ppp_jit <- rjitter(airbnb_ppp, 
                              retry=TRUE, 
@@ -437,11 +452,13 @@ airbnb_ppp_jit <- rjitter(airbnb_ppp,
 ```
 
 check duplicated points:
+
 ```{r}
 any(duplicated(airbnb_ppp_jit))
 ```
 
 create owin
+
 ```{r}
 # sg_owin <- as(sg_sp, "owin")
 central = mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',]
@@ -452,13 +469,14 @@ central_owin <- central %>%
 plot(central_owin)
 ```
 
-
 combine airbnb point events obj and owin obj
+
 ```{r}
 airbnbSG_ppp = airbnb_ppp_jit[central_owin]
 ```
 
 summary
+
 ```{r}
 summary(airbnbSG_ppp)
 ```
@@ -466,40 +484,44 @@ summary(airbnbSG_ppp)
 ## 1st Order SPPA
 
 rescale to convert from m to km
+
 ```{r}
 airbnbSG_ppp.km <- rescale(airbnbSG_ppp, 1000, "km")
 ```
 
-
 Kernel Density Estimation (automatic bandwidth)
+
 ```{r}
 kde_airbnbSG.bw <- density(airbnbSG_ppp.km,
                               sigma=bw.diggle,
                               edge=TRUE,
                             kernel="gaussian") 
 ```
-other methods to do: bw.CvL(), bw.scott(), bw.ppl()
-other smoothing kernels: epanechnikov, quartic, disc
+
+other methods to do: bw.CvL(), bw.scott(), bw.ppl() other smoothing kernels: epanechnikov, quartic, disc
 
 ```{r}
 plot(kde_airbnbSG.bw)
 ```
 
 KDE (fixed bandwidth)
+
 ```{r}
 kde_airbnbSG_600 <- density(airbnbSG_ppp.km, sigma=0.6, edge=TRUE, kernel="gaussian") #0.6 sigma = 600 m for bandwidth. 600m = 0.6km
 plot(kde_airbnbSG_600)
 ```
-sigma: range from 0.1 to 10
-different kernels
+
+sigma: range from 0.1 to 10 different kernels
 
 KDE (adaptive bandwidth)
+
 ```{r}
 kde_airbnbSG_adaptive <- adaptive.density(airbnbSG_ppp.km, method="kernel")
 plot(kde_airbnbSG_adaptive)
 ```
 
 convert KDE output into grid (do for all)
+
 ```{r}
 gridded_kde_airbnbSG_bw <- as.SpatialGridDataFrame.im(kde_airbnbSG.bw)
 
@@ -522,8 +544,8 @@ rc = mpsz_sf[mpsz_sf$PLN_AREA_N == "ROCHOR",]
 mapex <- st_bbox(central)
 ```
 
-
 final visualisation tmap
+
 ```{r}
 tmap_mode("plot")
 tm_shape(kde_airbnbSG_bw_raster, bbox=mapex) + 
@@ -534,32 +556,34 @@ tm_shape(kde_airbnbSG_bw_raster, bbox=mapex) +
 ## 2nd Order SPPA G/F/K/L Function
 
 G Function estimation
+
 ```{r}
 #| eval: false
 G_airbnb = Gest(airbnbSG_ppp, correction =c("rs", "Hanisch"))
 plot(G_airbnb, xlim=c(0,500))
 ```
-other correction: "best"
-Gest() - corrections: "none", "rs", "km", "Hanisch", "best", "all"
-Fest() - corrections: "none", "rs", "km", "cs", "best", "all"
-Kest() - corrections: "none", "border", "bord.modif", "isotropic", "Ripley", "translate", "translation", "rigid", "none", "good", "best", "all"
-Lest() - same as Kest()
+
+other correction: "best" Gest() - corrections: "none", "rs", "km", "Hanisch", "best", "all" Fest() - corrections: "none", "rs", "km", "cs", "best", "all" Kest() - corrections: "none", "border", "bord.modif", "isotropic", "Ripley", "translate", "translation", "rigid", "none", "good", "best", "all" Lest() - same as Kest()
 
 Complete Spatial Randomness Test
+
 ```{r}
 #| eval: false
 G_airbnb.csr <- envelope(airbnbSG_ppp, Gest, nsim = 999)
 # G_airbnb.csr <- envelope(airbnbSG_ppp, Gest, correction="all", nsim = 999)
 ```
+
 nsim: number btwn 0 to 1000
 
 plot to show
+
 ```{r}
 #| eval: false
 plot(G_airbnb.csr)
 ```
 
 K Function estimation
+
 ```{r}
 #| eval: false
 K_airbnb = Kest(airbnbSG_ppp, correction =c("best"))
@@ -567,20 +591,24 @@ plot(K_airbnb, xlim=c(0,500))
 ```
 
 Complete Spatial Randomness Test
+
 ```{r}
 #| eval: false
 K_airbnb.csr <- envelope(airbnbSG_ppp, Kest, nsim = 999)
 # G_airbnb.csr <- envelope(airbnbSG_ppp, Gest, correction="all", nsim = 999)
 ```
+
 nsim: number btwn 0 to 1000
 
 plot to show
+
 ```{r}
 #| eval: false
 plot(K_airbnb.csr)
 ```
 
 ## visualisation
+
 ```{r}
 tmap_mode("plot")
 tm_shape(mpsz_sf) + 
@@ -604,39 +632,61 @@ occurrence <- occurrence[order(-occurrence$n),]
 ```{r}
 occurrence
 ```
+
 kallang has the most airbnbs
 
 K cross function
+
 ```{r}
 
 ```
-
-
 
 ## NetSPPA
+
 kallang airbnbs:
+
 ```{r}
-kallang_airbnb_sf <- filter(airbnb_sf, neighbourhood == "Kallang")
-kallang_airbnb_sf
+rochor_airbnb_sf <- filter(airbnb_sf, neighbourhood == "Rochor")
+rochor_airbnb_sf
 ```
-
-
-
 
 ```{r}
 plot(network_sf)
 ```
 
 kallang airbnb plot
+
 ```{r}
 tmap_mode('plot')
-tm_shape(kallang_airbnb_sf) + 
+tm_shape(rochor_airbnb_sf) + 
+  tm_dots() + 
+  tm_shape(network_sf) +
+  tm_lines()
+```
+
+punggol airbnbs
+
+```{r}
+punggol_airbnb_sf <- filter(airbnb_sf, neighbourhood == "Punggol")
+punggol_airbnb_sf
+```
+
+```{r}
+plot(network_sf)
+```
+
+kallang airbnb plot
+
+```{r}
+tmap_mode('plot')
+tm_shape(punggol_airbnb_sf) + 
   tm_dots() + 
   tm_shape(network_sf) +
   tm_lines()
 ```
 
 all airbnbs plot
+
 ```{r}
 tmap_mode('view')
 tm_shape(airbnb_sf) + 
@@ -650,63 +700,122 @@ tmap_mode('plot')
 ```
 
 convert to single linestring
+
 ```{r}
+#| eval: false
 network_linestring <- network_sf %>% st_cast("LINESTRING")
 ```
 
 save to rds
+
 ```{r}
 #| eval: false
 network_linestring_rds <- write_rds(network_linestring, "data/network_linestring.rds")
 ```
 
+```{r}
+network_linestring <- read_rds("data/network_linestring.rds")
+```
 
-preparing lixels objects
+## make network linestring for rochor only
+
+```{r}
+rochor_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "ROCHOR",]
+```
+
+```{r}
+polygon_union <- st_union(rochor_zone$geometry)
+df_polygon_union <- st_as_sf(data.frame(id = 1), 
+                             geometry = st_sfc(polygon_union), 
+                             crs = st_crs(network_linestring))
+network_linestring_rochor <- st_intersection(network_linestring, df_polygon_union)
+```
+
+```{r}
+network_linestring_rochor <- st_cast(network_linestring_rochor, "LINESTRING")
+```
+
+```{r}
+network_linestring_rochor <- network_linestring_rochor %>% select(c(1,2,4))
+```
+
 ```{r}
 #| eval: false
-lixels <- lixelize_lines(network_linestring, 
+network_linestring_rochor_rds <- write_rds(network_linestring_rochor, "data/network_linestring_rochor.rds")
+```
+
+```{r}
+network_linestring_rochor <- read_rds("data/network_linestring_rochor.rds")
+```
+
+preparing lixels objects
+
+```{r}
+#| eval: false
+lixels <- lixelize_lines(network_linestring_rochor, 
                          700, 
                          mindist = 350)
 ```
 
 save to rds
+
 ```{r}
 #| eval: false
-lixels_rds <- write_rds(lixels, "data/lixels_rds.rds")
+lixels_rds <- write_rds(lixels, "data/lixels_rochor.rds")
 ```
 
 read the rds file
+
 ```{r}
-lixels_rds <- read_rds("data/lixels_rds.rds")
+lixels_rds <- read_rds("data/lixels_rochor.rds")
 ```
 
-
 generate line centre points
+
 ```{r}
 #| eval: false
 samples <- lines_center(lixels_rds)
 ```
 
 write to rds
+
 ```{r}
 #| eval: false
-samples_rds <- write_rds(samples, "data/samples_rds.rds")
+samples_rds <- write_rds(samples, "data/samples_rochor.rds")
 ```
 
 read the rds file
+
 ```{r}
-samples_rds <- read_rds("data/samples_rds.rds")
+samples_rds <- read_rds("data/samples_rochor.rds")
 ```
 
+check for duplicated in network linestring kallang
 
+```{r}
+any(duplicated(network_linestring_rochor))
+```
 
+jittering on network_linestring_kallang
+
+```{r}
+# all_sf_jit <- st_jitter(all_sf)
+```
+
+check if any duplicated again
+
+```{r}
+# any(duplicated(all_sf_jit))
+
+```
 
 perform NetKDE
+
 ```{r}
 #| eval: false
-densities <- nkde(network_linestring, 
-                  events = kallang_airbnb_sf,
-                  w = rep(1,nrow(kallang_airbnb_sf)),
+densities <- nkde(network_linestring_rochor, 
+                  events = rochor_airbnb_sf,
+                  w = rep(1,nrow(rochor_airbnb_sf)),
                   samples = samples_rds,
                   kernel_name = "quartic",
                   bw = 300, 
@@ -722,19 +831,21 @@ densities <- nkde(network_linestring,
 ```
 
 write to rds
+
 ```{r}
 #| eval: false
-densities_rds <- write_rds(densities, "data/densities_rds.rds")
+# densities_rds <- write_rds(densities, "data/densities_kallang.rds")
 ```
 
 read the rds file
+
 ```{r}
-densities_rds <- read_rds("data/densities_rds.rds")
+# densities_rds <- read_rds("data/densities_kallang.rds")
 ```
 
 ```{r}
-samples_rds$density <- densities_rds
-lixels_rds$density <- densities_rds
+samples_rds$density <- densities
+lixels_rds$density <- densities
 ```
 
 ```{r}
@@ -747,14 +858,14 @@ lixels_rds$density <- lixels_rds$density*1000
 tmap_mode('view')
 tm_shape(lixels_rds)+
   tm_lines(col="density")+
-tm_shape(kallang_airbnb_sf)+
-  tm_dots()
+tm_shape(rochor_airbnb_sf)+
+  tm_dots(size = 0.005)
 ```
 
 ```{r}
 #| eval: false
-kfun_kallang_airbnb <- kfunctions(network_linestring, 
-                             kallang_airbnb_sf,
+kfun_rochor_airbnb <- kfunctions(network_linestring_rochor, 
+                             rochor_airbnb_sf,
                              start = 0, 
                              end = 1000, 
                              step = 50, 
@@ -763,17 +874,18 @@ kfun_kallang_airbnb <- kfunctions(network_linestring,
                              resolution = 50,
                              verbose = FALSE, 
                              conf_int = 0.05,
-                             agg = 40)
+                             agg = 100)
 ```
-
 
 ```{r}
 #| eval: false
-kfun_kallang_airbnb$plotk
+kfun_rochor_airbnb$plotk
 ```
 
 ### for all airbnbs
+
 perform NetKDE for all airbnbs
+
 ```{r}
 #| eval: false
 all_densities <- nkde(network_linestring, 
@@ -794,12 +906,14 @@ all_densities <- nkde(network_linestring,
 ```
 
 write to rds
+
 ```{r}
 #| eval: false
 all_densities_rds <- write_rds(all_densities, "data/all_densities_rds.rds")
 ```
 
 read rds
+
 ```{r}
 all_densities_rds <- read_rds("data/all_densities_rds.rds")
 ```
@@ -844,9 +958,11 @@ kfun_all_airbnbs$plotk
 ```
 
 network cross K function spNetwork
+
 ```{r}
 #| eval: false
-crossk_kallang <- cross_kfunctions(network_linestring, kallang_airbnb_sf, mrt_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+### error faced here when universities or hotels or tourist attractions are plotted as the second variable
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_sf, mrt_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 200)
 ```
 
 ```{r}
@@ -864,8 +980,250 @@ crossk_kallang <- cross_kfunctions(network_linestring, mrt_sf, kallang_airbnb_sf
 crossk_kallang$plotk
 ```
 
+### check duplicated in all_sf
+
+```{r}
+any(duplicated(all_sf))
+```
+
+jittering on all_sf
+
+```{r}
+all_sf_jit <- st_jitter(all_sf)
+```
+
+check if any duplicated again
+
+```{r}
+any(duplicated(all_sf_jit))
+
+```
+
+#### mrt agg=100
+
+```{r}
+any(duplicated(kallang_airbnb_sf))
+```
+
+```{r}
+kallang_airbnb_jit <- st_jitter(kallang_airbnb_sf)
+```
+
+check if any duplicated again
+
+```{r}
+any(duplicated(kallang_airbnb_jit))
+
+```
+
+see how to extract point events
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'mrt')
+points_within_polygons <- st_intersection(pointsB, kallang_zone)
+```
+
+```{r}
+kallang_airbnb_jit_snapped <- snapPointsToLines(kallang_airbnb_jit, network_linestring_kallang)
+```
+
+```{r}
+#kallang_airbnb_sf
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_jit, points_within_polygons, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+#### bus stop No
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'busstop')
+# pointsB <- st_jitter(busstop_sf)
+points_within_polygons <- st_intersection(pointsB, kallang_zone)
+
+
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_jit, points_within_polygons, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 20000)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+#### tourist attractions No
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'attraction')
+# pointsB <- st_jitter(attr_sf)
+
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_sf, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 10000)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+#### hotels No
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'hotel')
+# pointsB <- st_jitter(hotel_sf)
+
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_sf, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+#### malls agg=100
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'mall')
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_sf, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+#### seveneleven No
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'seveneleven')
+# pointsB <- st_jitter(sevenele_sf)
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsA, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 10000)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+#### unis agg=100
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'uni')
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, kallang_airbnb_sf, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+#| eval: false
+crossk_kallang <- cross_kfunctions(network_linestring_kallang, pointsB, kallang_airbnb_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
 ## Analysing Marked Point Patterns
+
 make sf containing all 8 different types of point events
+
 ```{r}
 attr_mp <- attr_sf
 attr_mp$type <- "attraction"
@@ -873,7 +1231,7 @@ attr_mp <- attr_mp %>% select(c(2,3))
 
 busstop_mp <- busstop_sf
 busstop_mp$type <- "busstop"
-busstop_mp <- busstop_mp %>% select(c(2,3))
+busstop_mp <- busstop_mp %>% select(c(4,5))
 
 hotel_mp <- hotel_sf
 hotel_mp$type <- "hotel"
@@ -900,8 +1258,6 @@ airbnb_mp$type <- "airbnb"
 airbnb_mp <- airbnb_mp %>% select(c(5,6))
 ```
 
-
-
 ```{r}
 all_sf <- do.call("rbind", list(attr_mp, busstop_mp, hotel_mp, mall_mp, mrt_mp, sevenele_mp, unis_mp, airbnb_mp))
 
@@ -912,20 +1268,16 @@ all_sf <- do.call("rbind", list(attr_mp, busstop_mp, hotel_mp, mall_mp, mrt_mp, 
 all_sf[rowSums(is.na(all_sf))!=0,]
 ```
 
-
-
 ```{r}
 all_sf[!st_is_empty(all_sf), ]
 ```
-
-
 
 ```{r}
 all <- as_Spatial(all_sf)
 ```
 
-
 shows that type field is in chr data type, need to change to factor data type
+
 ```{r}
 str(all)
 ```
@@ -934,34 +1286,39 @@ str(all)
 
 ```
 
-
 convert type field to factor data type
+
 ```{r}
 all@data$type <- as.factor(all@data$type)
 ```
 
 ```{r}
+busstop_sf <- st_intersection(busstop_sf, sg_sf)
+```
+
+
+```{r}
 tmap_mode("view")
-# mpsz_sf
-tm_shape(mpsz_sf, bbox=st_bbox(mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',])) +
+tm_shape(mpsz_sf) +
+# tm_shape(mpsz_sf, bbox=st_bbox(mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',])) +
   tm_borders(alpha = 0.5) +
   tmap_options(check.and.fix = TRUE) +
 tm_shape(airbnb_sf) +
-  tm_dots(col='red', size = 0.02, alpha = 0.5) +
+  tm_dots(col='red', size = 0.01, alpha = 1) +
 tm_shape(attr_sf) +
-  tm_dots(col='orange', size = 0.02, alpha = 0.5) + 
+  tm_dots(col='orange', size = 0.01, alpha = 0.5) + 
 tm_shape(busstop_sf) +
-  tm_dots(col='yellow', size = 0.02, alpha = 0.5) +
+  tm_dots(col='yellow', size = 0.01, alpha = 0.4) +
 tm_shape(sevenele_sf) +
-  tm_dots(col='green', size = 0.02, alpha = 0.5) + 
+  tm_dots(col='green', size = 0.01, alpha = 0.5) + 
 tm_shape(mall_sf) +
-  tm_dots(col='blue', size = 0.02, alpha = 0.5) +
+  tm_dots(col='blue', size = 0.01, alpha = 0.5) +
 tm_shape(hotel_sf) +
-  tm_dots(col='purple', size = 0.02, alpha = 0.5) + 
+  tm_dots(col='purple', size = 0.01, alpha = 0.5) + 
 tm_shape(unis_sf) +
-  tm_dots(col='black', size = 0.02, alpha = 0.5) +
+  tm_dots(col='black', size = 0.01, alpha = 0.5) +
 tm_shape(mrt_sf) +
-  tm_dots(col='violet', size = 0.02, alpha = 0.5) +
+  tm_dots(col='violet', size = 0.01, alpha = 0.5) +
 tm_view(set.zoom.limits = c(10,16)) 
 ```
 
@@ -977,7 +1334,9 @@ tm_shape(all) +
 ```{r}
 tmap_mode("plot")
 ```
+
 converting into ppp
+
 ```{r}
 all_ppp <- as(all, "ppp")
 ```
@@ -996,17 +1355,18 @@ tm_shape(all) +
   tm_dots(col = 'type', size = 0.02)
 ```
 
-
 ```{r}
 summary(all_ppp)
 ```
 
 avoiding duplicated spatial point events using jittering
+
 ```{r}
 all_ppp_jit <- rjitter(all_ppp, retry=TRUE, nsim=1, drop=TRUE)
 ```
 
 check for duplicates
+
 ```{r}
 any(duplicated(all_ppp_jit))
 ```
@@ -1014,7 +1374,6 @@ any(duplicated(all_ppp_jit))
 ```{r}
 summary(all_ppp_jit)
 ```
-
 
 ```{r}
 central = mpsz_sf[mpsz_sf$REGION_N=='CENTRAL REGION',]
@@ -1028,20 +1387,22 @@ sb = mpsz_sf[mpsz_sf$PLN_AREA_N == "SEMBAWANG",]
 pr = mpsz_sf[mpsz_sf$PLN_AREA_N == "PASIR RIS",]
 ```
 
-
 extracting study area, Kallang, since there is the most airbnbs
+
 ```{r}
 kl = mpsz[mpsz@data$PLN_AREA_N == "KALLANG",]
 plot(kl, main="Kallang")
 ```
 
 converting the spatial point data frame into generic sp format
+
 ```{r}
 kl_sp = as(kl, "SpatialPolygons")
 str(kl_sp)
 ```
 
 creating owin object
+
 ```{r}
 kl_owin = as(kl_sp, "owin")
 str(kl_owin)
@@ -1054,8 +1415,8 @@ kl_owin <- mpsz_sf[mpsz_sf$PLN_AREA_N == "KALLANG",] %>%
   as('owin')
 ```
 
-
 combining all spatial event points and kallang study area
+
 ```{r}
 all_kl_ppp = all_ppp_jit[kl_owin]
 ```
@@ -1068,7 +1429,6 @@ summary(all_kl_ppp)
 plot(all_kl_ppp,cols=c("red", "orange", "yellow", "brown", "green", "violet", "blue", "black"))
 ```
 
-
 ```{r}
 #| eval: false
 all_Kcross <- Kcross(all_kl_ppp, i="airbnb", j="seveneleven",
@@ -1080,19 +1440,18 @@ plot(all_Kcross)
 all_Kcross.csr <- envelope(all_kl_ppp, Kcross, i="airbnb", j="seveneleven", correction='border', nsim=999)
 ```
 
-
 ```{r}
 plot(all_Kcross.csr, xlab="distance(m)", xlim=c(0,500))
 ```
 
 ## L cross
+
 ```{r}
 all_Lcross <- Lcross(all_kl_ppp, i="airbnb", j="seveneleven", correction='border')
 plot(all_kl_ppp, . -r ~ r, 
      xlab = "distance(m)", 
      xlim=c(0, 500))
 ```
-
 
 ```{r}
 all_Lcross.csr <- envelope(all_kl_ppp, Lcross, i="airbnb", j="seveneleven", correction='border', nsim=999)
@@ -1102,17 +1461,20 @@ all_Lcross.csr <- envelope(all_kl_ppp, Lcross, i="airbnb", j="seveneleven", corr
 plot(all_Lcross.csr, . -r ~ r, xlab="distance(m)", xlim=c(0,500))
 ```
 
-
-
 ## LCLQ
+
 prepare nb list
+
 ```{r}
+#| eval: false
 nb <- include_self(
   st_knn(st_geometry(all_sf), 6))
 ```
 
 weights list
+
 ```{r}
+#| eval: false
 wt <- st_kernel_weights(nb, 
                         all_sf, 
                         "gaussian", 
@@ -1120,40 +1482,935 @@ wt <- st_kernel_weights(nb,
 ```
 
 vector list
+
 ```{r}
+#| eval: false
 Airbnb <- all_sf %>%
   filter(type == "airbnb")
 A <- Airbnb$type
 ```
 
+### bus stop
+
 ```{r}
-SevenEleven <- all_sf %>%
-  filter(type == "seveneleven")
-B <- SevenEleven$type
+#| eval: false
+BusStop <- all_sf %>%
+  filter(type == "busstop")
+B <- BusStop$type
 ```
 
 compute LCLQ
+
 ```{r}
+#| eval: false
 LCLQ <- local_colocation(A, B, nb, wt, 49)
 ```
 
 joining output table
+
 ```{r}
+#| eval: false
 LCLQ_all <- cbind(all_sf, LCLQ)
 ```
 
 plot LCLQ values
+
 ```{r}
 #| eval: false
 tmap_mode("view")
 tm_shape(mpsz_sf) +
   tm_polygons() +
 tm_shape(LCLQ_all)+ 
-  tm_dots(col = "X7.Eleven",
+  tm_dots(col = "p_sim_busstop",
              size = 0.01,
              border.col = "black",
              border.lwd = 0.5) +
-  tm_view(set.zoom.limits = c(12, 16))
+  tm_view(set.zoom.limits = c(10, 16))
 ```
 
+### mrt
+
+```{r}
+#| eval: false
+MRT <- all_sf %>%
+  filter(type == "mrt")
+B <- MRT$type
+```
+
+compute LCLQ
+
+```{r}
+#| eval: false
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+joining output table
+
+```{r}
+#| eval: false
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "p_sim_mrt",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(10, 16))
+```
+
+### tourist attractions
+
+```{r}
+#| eval: false
+TouristAttractions <- all_sf %>%
+  filter(type == "attraction")
+B <- TouristAttractions$type
+```
+
+compute LCLQ
+
+```{r}
+#| eval: false
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+joining output table
+
+```{r}
+#| eval: false
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "p_sim_attraction",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(10, 16))
+```
+
+### hotels
+
+```{r}
+#| eval: false
+Hotels <- all_sf %>%
+  filter(type == "hotel")
+B <- Hotels$type
+```
+
+compute LCLQ
+
+```{r}
+#| eval: false
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+joining output table
+
+```{r}
+#| eval: false
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "p_sim_hotel",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(10, 16))
+```
+
+### malls
+
+```{r}
+#| eval: false
+Malls <- all_sf %>%
+  filter(type == "mall")
+B <- Malls$type
+```
+
+compute LCLQ
+
+```{r}
+#| eval: false
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+joining output table
+
+```{r}
+#| eval: false
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "p_sim_mall",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(10, 16))
+```
+
+### seveneleven
+
+```{r}
+#| eval: false
+SevenEleven <- all_sf %>%
+  filter(type == "seveneleven")
+B <- SevenEleven$type
+```
+
+compute LCLQ
+
+```{r}
+#| eval: false
+LCLQ <- local_colocation(A, B, nb, wt, 49)
+```
+
+joining output table
+
+```{r}
+#| eval: false
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "p_sim_seveneleven",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(10, 16))
+```
+
+### unis
+
+```{r}
+#| eval: false
+Unis <- all_sf %>%
+  filter(type == "uni")
+B <- Unis$type
+```
+
+compute LCLQ
+
+```{r}
+#| eval: false
+LCLQ <- local_colocation(A, B, nb, wt, 99)
+```
+
+joining output table
+
+```{r}
+#| eval: false
+LCLQ_all <- cbind(all_sf, LCLQ)
+```
+
+plot LCLQ values
+
+```{r}
+#| eval: false
+tmap_mode("view")
+tm_shape(mpsz_sf) +
+  tm_polygons() +
+tm_shape(LCLQ_all)+ 
+  tm_dots(col = "p_sim_uni",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(10, 16))
+```
+
+## 1.0 NetSPPA v2 - xy kallang
+
+### 1.1 KALLANG network linestring, lixels, samples
+
+```{r}
+kallang_sf <- st_read(dsn = "data/kallang_roads", layer="kallang_roads")
+```
+
+```{r}
+kallang_network <- st_cast(kallang_sf, "LINESTRING")
+```
+
+```{r}
+any(duplicated(kallang_network))
+```
+
+check for duplicates in kallang network geometry - 1 duplicate
+
+```{r}
+dupl <- duplicated(st_as_text(kallang_network$geometry))
+# Extract the duplicated geometries
+dupl_geoms <- kallang_network[dupl, ]
+
+# Print the duplicated geometries
+print(dupl_geoms)
+```
+
+remove the rows in kallang network with duplicate geometry
+
+```{r}
+# Remove rows with duplicate geometries
+kallang_network <- subset(kallang_network, !duplicated(st_as_text(kallang_network$geometry)))
+```
+
+```{r}
+#| eval: false
+kallang_network_rds <- write_rds(kallang_network, "data/kallang_roads/kallang_network.rds")
+```
+
+```{r}
+rochor_network <- read_rds("data/rochor_roads/rochor_network.rds")
+```
+
+```{r}
+lixels <- lixelize_lines(kallang_network, 
+                         700, 
+                         mindist = 350)
+```
+
+```{r}
+#| eval: false
+lixels_rds <- write_rds(lixels, "data/kallang_roads/kallang_lixels.rds")
+```
+
+```{r}
+lixels <- read_rds("data/rochor_roads/rochor_lixels.rds")
+```
+
+```{r}
+samples <- lines_center(lixels)
+```
+
+```{r}
+#| eval: false
+samples_rds <- write_rds(samples, "data/kallang_roads/kallang_samples.rds")
+```
+
+```{r}
+samples <- read_rds("data/rochor_roads/rochor_samples.rds")
+```
+
+### 1.2 NetKDE kallang
+
+create densities & plot NKDE
+
+### 1.2.1 kallang airbnbs
+
+```{r}
+any(duplicated(kallang_airbnb_sf))
+
+```
+
+```{r}
+kallang_airbnb_sf <- st_jitter(kallang_airbnb_sf)
+```
+
+```{r}
+any(duplicated(kallang_airbnb_sf))
+```
+
+```{r}
+kallang_airbnb_sf <- distinct(kallang_airbnb_sf, geometry, .keep_all=TRUE)
+```
+
+```{r}
+densities <- nkde(kallang_network, 
+                  events = kallang_airbnb_sf,
+                  w = rep(1,nrow(kallang_airbnb_sf)),
+                  samples = samples,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+```{r}
+samples$density <- densities
+lixels$density <- densities
+```
+
+```{r}
+# rescaling to help the mapping
+samples$density <- samples$density*1000
+lixels$density <- lixels$density*1000
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixels)+
+  tm_lines(col="density")+
+tm_shape(kallang_airbnb_sf)+
+  tm_dots()
+```
+
+```{r}
+tmap_mode('plot')
+```
+
+### 1.2.2 seveneleven
+
+seveneleven works, busstop works, mrt works, attr works, hotel works, mall works,
+
+```{r}
+any(duplicated(unis_sf))
+
+```
+
+```{r}
+busstop_sf <- st_jitter(busstop_sf)
+```
+
+```{r}
+any(duplicated(busstop_sf))
+```
+
+```{r}
+rochor_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "ROCHOR",]
+```
+
+```{r}
+rochor_unis <- st_intersection(unis_sf, rochor_zone)
+```
+
+```{r}
+#| eval: false
+rochor_sevenele_rds <- write_rds(rochor_sevenele, "data/rochor_roads/rochor_sevenele.rds")
+```
+
+```{r}
+rochor_sevenele <- read_rds("data/rochor_roads/rochor_sevenele.rds")
+```
+
+```{r}
+densities <- nkde(rochor_network, 
+                  events = rochor_sevenele,
+                  w = rep(1,nrow(rochor_sevenele)),
+                  samples = samples,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+```{r}
+samples$density <- densities
+lixels$density <- densities
+```
+
+```{r}
+# rescaling to help the mapping
+samples$density <- samples$density*1000
+lixels$density <- lixels$density*1000
+```
+
+```{r}
+tmap_mode('view')
+tm_shape(lixels)+
+  tm_lines(col="density")+
+tm_shape(rochor_sevenele)+
+  tm_dots()
+```
+
+### Net K Func
+
+```{r}
+kallang_attr <- read_rds("data/kallang_roads/kallang_attr.rds") #1 pt
+kallang_busstop <- read_rds("data/kallang_roads/kallang_busstop.rds")
+kallang_hotel <- read_rds("data/kallang_roads/kallang_hotel.rds")
+kallang_mall <- read_rds("data/kallang_roads/kallang_mall.rds")
+kallang_mrt <- read_rds("data/kallang_roads/kallang_mrt.rds")
+kallang_sevenele <- read_rds("data/kallang_roads/kallang_sevenele.rds")
+kallang_unis <- read_rds("data/kallang_roads/kallang_unis.rds") # 1 pt
+```
+
+```{r}
+rochor_attr <- read_rds("data/rochor_roads/rochor_attr.rds") #1 pt
+rochor_busstop <- read_rds("data/rochor_roads/rochor_busstop.rds")
+rochor_hotel <- read_rds("data/rochor_roads/rochor_hotel.rds")
+rochor_mall <- read_rds("data/rochor_roads/rochor_mall.rds")
+rochor_mrt <- read_rds("data/rochor_roads/rochor_mrt.rds")
+rochor_sevenele <- read_rds("data/rochor_roads/rochor_sevenele.rds")
+rochor_unis <- read_rds("data/rochor_roads/rochor_unis.rds") # 1 pt
+```
+
+```{r}
+kfun_rochor <- kfunctions(rochor_network, 
+                             rochor_busstop,
+                             start = 0, 
+                             end = 1000, 
+                             step = 50, 
+                             width = 50, 
+                             nsim = 99, 
+                             resolution = 50,
+                             verbose = FALSE, 
+                             conf_int = 0.05,
+                             agg = 115)
+```
+
+```{r}
+kfun_rochor$plotk
+```
+
+### all sf
+
+```{r}
+attr_mp <- attr_sf
+attr_mp$type <- "attraction"
+attr_mp <- attr_mp %>% select(c(2,3))
+
+busstop_mp <- busstop_sf
+busstop_mp$type <- "busstop"
+busstop_mp <- busstop_mp %>% select(c(7))
+
+hotel_mp <- hotel_sf
+hotel_mp$type <- "hotel"
+hotel_mp <- hotel_mp %>% select(c(2,3))
+
+mall_mp <- mall_sf
+mall_mp$type <- "mall"
+mall_mp <- mall_mp %>% select(c(2,3))
+
+mrt_mp <- mrt_sf
+mrt_mp$type <- "mrt"
+mrt_mp <- mrt_mp %>% select(c(2,3))
+
+sevenele_mp <- sevenele_sf
+sevenele_mp$type <- "seveneleven"
+sevenele_mp <- sevenele_mp %>% select(c(2,3))
+
+unis_mp <- unis_sf
+unis_mp$type <- "uni"
+unis_mp <- unis_mp %>% select(c(2,3))
+
+airbnb_mp <- airbnb_sf
+airbnb_mp$type <- "airbnb"
+airbnb_mp <- airbnb_mp %>% select(c(5,6))
+```
+
+```{r}
+all_sf <- do.call("rbind", list(attr_mp, busstop_mp, hotel_mp, mall_mp, mrt_mp, sevenele_mp, unis_mp, airbnb_mp))
+```
+
+```{r}
+all_sf[rowSums(is.na(all_sf))!=0,]
+```
+
+```{r}
+all_sf[!st_is_empty(all_sf), ]
+```
+
+```{r}
+any(duplicated(all_sf))
+
+```
+
+jittering on all_sf
+
+```{r}
+all_sf_jit <- st_jitter(all_sf)
+```
+
+check if any duplicated again
+
+```{r}
+any(duplicated(all_sf_jit))
+
+```
+
+```{r}
+dupl <- duplicated(st_as_text(all_sf_jit$geometry))
+# Extract the duplicated geometries
+dupl_geoms <- all_sf_jit[dupl, ]
+
+# Print the duplicated geometries
+print(dupl_geoms)
+```
+
+### mrt
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'attraction')
+# points_within_polygons <- st_intersection(pointsB, kallang_zone)
+```
+
+```{r}
+# temp_kallang_network <- kallang_network %>% select(c(1,11))
+# names(temp_kallang_network)[1] <- "type"
+# df <- rbind(temp_kallang_network, pointsA, pointsB)
+# 
+# # Check for duplicates
+# dupl <- duplicated(df)
+# 
+# # Extract the duplicated rows
+# dupl_rows <- df[dupl, ]
+# 
+# # Print the duplicated rows
+# print(dupl_rows)
+```
+
+```{r}
+dupl <- duplicated(st_as_text(kallang_airbnb_sf$geometry))
+# Extract the duplicated geometries
+dupl_geoms <- kallang_airbnb_sf[dupl, ]
+
+# Print the duplicated geometries
+print(dupl_geoms)
+```
+
+```{r}
+dupl <- duplicated(st_as_text(mrt_sf$geometry))
+# Extract the duplicated geometries
+dupl_geoms <- mrt_sf[dupl, ]
+
+# Print the duplicated geometries
+print(dupl_geoms)
+```
+
+```{r}
+crossk_kallang <- cross_kfunctions.mc(kallang_network, kallang_airbnb_sf, mrt_sf, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 500)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+crossk_kallang <- cross_kfunctions(rochor_network, rochor_airbnb_sf, rochor_unis, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+### busstop
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'busstop')
+# points_within_polygons <- st_intersection(pointsB, kallang_zone)
+```
+
+```{r}
+any(duplicated(pointsB))
+
+```
+
+```{r}
+crossk_kallang <- cross_kfunctions(kallang_network, pointsA, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 500)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+```{r}
+crossk_kallang <- cross_kfunctions(kallang_network, pointsB, pointsA, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 100)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+## NetSPPA v3 - xy punggol
+
+```{r}
+punggol_sf <- st_read(dsn = "data/punggol_roads", layer="punggol_roads")
+```
+
+```{r}
+punggol_network <- st_cast(punggol_sf, "LINESTRING")
+```
+
+```{r}
+any(duplicated(punggol_network))
+```
+
+```{r}
+any(duplicated(punggol_airbnb_sf))
+
+```
+
+```{r}
+punggol_airbnb_sf <- distinct(punggol_airbnb_sf, geometry, .keep_all=TRUE)
+```
+
+```{r}
+lixels_punggol <- lixelize_lines(punggol_network, 
+                         700, 
+                         mindist = 350)
+```
+
+```{r}
+samples_punggol <- lines_center(lixels_punggol)
+```
+
+```{r}
+densities_punggol <- nkde(punggol_network, 
+                  events = punggol_airbnb_sf,
+                  w = rep(1,nrow(punggol_airbnb_sf)),
+                  samples = samples_punggol,
+                  kernel_name = "quartic",
+                  bw = 300, 
+                  div= "bw", 
+                  method = "simple", 
+                  digits = 1, 
+                  tol = 1,
+                  grid_shape = c(1,1), 
+                  max_depth = 8,
+                  agg = 5, #we aggregate events within a 5m radius (faster calculation)
+                  sparse = TRUE,
+                  verbose = FALSE)
+```
+
+```{r}
+samples_punggol$density <- densities_punggol
+lixels_punggol$density <- densities_punggol
+```
+
+```{r}
+# rescaling to help the mapping
+samples_punggol$density <- samples_punggol$density*1000
+lixels_punggol$density <- lixels_punggol$density*1000
+```
+
+### NetKDE
+
+```{r}
+tmap_mode('view')
+tm_shape(lixels_punggol)+
+  tm_lines(col="density")+
+tm_shape(punggol_airbnb_sf)+
+  tm_dots()
+```
+
+check for duplicates in punggol network geometry - 1 duplicate
+
+```{r}
+dupl <- duplicated(st_as_text(punggol_network$geometry))
+# Extract the duplicated geometries
+dupl_geoms <- punggol_network[dupl, ]
+
+# Print the duplicated geometries
+print(dupl_geoms)
+```
+
+### Net K Func
+
+```{r}
+kfun_punggol <- kfunctions(punggol_network, 
+                             punggol_airbnb_sf,
+                             start = 0, 
+                             end = 1000, 
+                             step = 50, 
+                             width = 50, 
+                             nsim = 99, 
+                             resolution = 50,
+                             verbose = FALSE, 
+                             conf_int = 0.05,
+                             agg = 40)
+```
+
+```{r}
+kfun_punggol$plotk
+```
+
+### mrt
+
+```{r}
+pointsA <- all_sf_jit %>% filter(all_sf_jit$type == 'airbnb')
+pointsB <- all_sf_jit %>% filter(all_sf_jit$type == 'mrt')
+# points_within_polygons <- st_intersection(pointsB, kallang_zone)
+```
+
+```{r}
+dupl <- duplicated(st_as_text(punggol_airbnb_sf$geometry))
+# Extract the duplicated geometries
+dupl_geoms <- punggol_airbnb_sf[dupl, ]
+
+# Print the duplicated geometries
+print(dupl_geoms)
+```
+
+```{r}
+# dupl <- duplicated(st_as_text(mrt_sf$geometry))
+# # Extract the duplicated geometries
+# dupl_geoms <- mrt_sf[dupl, ]
+# 
+# # Print the duplicated geometries
+# print(dupl_geoms)
+```
+
+```{r}
+crossk_kallang <- cross_kfunctions.mc(punggol_network, pointsA, pointsB, start = 0, end = 5000, step = 50, width = 1000, nsim = 50, verbose = FALSE, agg = 500)
+```
+
+```{r}
+#| eval: false
+crossk_kallang$plotk
+```
+
+## Testing
+```{r}
+busstop_sf <- st_read(dsn = "data/geospatial/busstop-022023-shp", layer="BusStop")
+mpsz_sf <- st_read(dsn = "data/geospatial/MPSZ-2019-shp", layer="MPSZ-2019")
+network_sf <- st_read(dsn = "data/geospatial/roadnetwork-022023-shp", layer="RoadSectionLine")
+attr_sf <- st_read(dsn = "data/geospatial/tourism-shp", layer="TOURISM")
+mrt_sf <- st_read(dsn = "data/geospatial/mrt-112022-shp", layer="Train_Station_Exit_Layer") 
+hotel_sf <- st_read("data/geospatial/hotels-2021-kml/hotel-locations.kml")
+sg_sf <- st_read(dsn = "data/geospatial/costal-shp", layer="CostalOutline")
+mall_csv <- read_csv("data/geospatial/shoppingmalls-2019-csv/mall_coordinates_updated.csv")
+mall_sf <- st_as_sf(mall_csv, coords = c("longitude", "latitude"), crs=4326)
+airbnb_csv <- read_csv("data/geospatial/airbnb-2022-csv/listings.csv")
+airbnb_sf <- st_as_sf(airbnb_csv, coords = c("longitude", "latitude"), crs=4326)
+seveneles <- read_rds("data/geospatial/711stores-032023-xlsx/sevenele_rds.rds")
+sevenele_sf <- st_as_sf(seveneles,
+                        coords = c("longitude", 
+                                   "latitude"),
+                        crs=4326) %>%
+  st_transform(crs = 3414)
+unis <- read_rds("data/geospatial/universitiescolleges-2023-xlsx/unis_rds.rds")
+unis_sf <- st_as_sf(unis,
+                    coords = c("longitude", 
+                               "latitude"),
+                    crs=4326) %>%
+  st_transform(crs = 3414)
+
+attr_sf <- attr_sf %>% select(c(5))
+busstop_sf <- busstop_sf %>% select(c(1))
+hotel_sf <- hotel_sf %>% select(c(1))
+mall_sf <- mall_sf %>% select(c(2))
+mrt_sf <- mrt_sf %>% select(c(1))
+sevenele_sf <- sevenele_sf %>% select(c(1))
+unis_sf <- unis_sf %>% select(c(1))
+airbnb_sf <- airbnb_sf %>% select(c(2,6,7,8))
+network_sf <- network_sf %>% select(c(2))
+
+hotel_sf <- st_zm(hotel_sf)
+mpsz_sf <- st_make_valid(mpsz_sf)
+sg_sf <- st_make_valid(sg_sf)
+busstop_sf <- st_intersection(busstop_sf, sg_sf)
+
+# with st_set_crs(), we can assign the appropriate ESPG Code
+attr_sf <- st_set_crs(attr_sf, 3414)
+busstop_sf <- st_set_crs(busstop_sf, 3414)
+mrt_sf <- st_set_crs(mrt_sf, 3414)
+network_sf <- st_set_crs(network_sf, 3414)
+sg_sf <- st_set_crs(sg_sf, 3414)
+
+# with st_transform(), we can change from one CRS to another
+mpsz_sf <- st_transform(mpsz_sf, crs=3414)
+hotel_sf <- st_transform(hotel_sf, crs=3414)
+mall_sf <- st_transform(mall_sf, crs=3414)
+airbnb_sf <- st_transform(airbnb_sf, crs=3414)
+
+# sevenele_sf and unis_sf are in the correct CRS and ESPG code
+
+airbnb <- as_Spatial(airbnb_sf)
+mpsz <- as_Spatial(mpsz_sf)
+sg <- as_Spatial(sg_sf)
+
+airbnb_sp <- as(airbnb, "SpatialPoints")
+sg_sp <- as(sg, "SpatialPolygons")
+
+airbnb_ppp <- as(airbnb_sp, "ppp")
+airbnb_ppp_jit <- rjitter(airbnb_ppp, 
+                          retry=TRUE, 
+                          nsim=1, 
+                          drop=TRUE)
+
+kallang_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "KALLANG",]
+kallang_owin <- kallang_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+kallang_airbnb_ppp <- airbnb_ppp_jit[kallang_owin]
+kallang_airbnb_ppp.km <- rescale(kallang_airbnb_ppp, 1000, "km")
+
+downtown_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "DOWNTOWN CORE",]
+downtown_owin <- downtown_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+downtown_airbnb_ppp <- airbnb_ppp_jit[downtown_owin]
+downtown_airbnb_ppp.km <- rescale(downtown_airbnb_ppp, 1000, "km")
+
+outram_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "OUTRAM",]
+outram_owin <- outram_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+outram_airbnb_ppp <- airbnb_ppp_jit[outram_owin]
+outram_airbnb_ppp.km <- rescale(outram_airbnb_ppp, 1000, "km")
+
+rochor_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "ROCHOR",]
+rochor_owin <- rochor_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+rochor_airbnb_ppp <- airbnb_ppp_jit[rochor_owin]
+rochor_airbnb_ppp.km <- rescale(rochor_airbnb_ppp, 1000, "km")
+
+jurong_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "JURONG WEST",]
+jurong_owin <- jurong_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+jurong_airbnb_ppp <- airbnb_ppp_jit[jurong_owin]
+jurong_airbnb_ppp.km <- rescale(jurong_airbnb_ppp, 1000, "km")
+
+sembawang_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "SEMBAWANG",]
+sembawang_owin <- sembawang_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+sembawang_airbnb_ppp <- airbnb_ppp_jit[sembawang_owin]
+sembawang_airbnb_ppp.km <- rescale(sembawang_airbnb_ppp, 1000, "km")
+
+pasir_zone <- mpsz_sf[mpsz_sf$PLN_AREA_N == "PASIR RIS",]
+pasir_owin <- pasir_zone %>% as ('Spatial') %>% as ('SpatialPolygons') %>% as ('owin')
+pasir_airbnb_ppp <- airbnb_ppp_jit[pasir_owin]
+pasir_airbnb_ppp.km <- rescale(pasir_airbnb_ppp, 1000, "km")
+
+
+my_vars <- c("Airbnb", "Bus Stops", "MRT", "Tourist Attractions", "Hotels", "Malls", "7-11", "Universities")
+
+```
 
